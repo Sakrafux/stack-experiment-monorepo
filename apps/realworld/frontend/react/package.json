@@ -1,0 +1,11 @@
+{
+  "name": "realworld-frontend-react",
+  "scripts": {
+      "start": "nx serve realworld-frontend-react",
+      "build": "nx build realworld-frontend-react",
+      "test": "nx test realworld-frontend-react"
+  },
+  "nx": {
+      "includedScripts": []
+  }
+}

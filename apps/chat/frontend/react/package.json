@@ -1,0 +1,11 @@
+{
+  "name": "chat-frontend-react",
+  "scripts": {
+      "start": "nx serve chat-frontend-react",
+      "build": "nx build chat-frontend-react",
+      "test": "nx test chat-frontend-react"
+  },
+  "nx": {
+      "includedScripts": []
+  }
+}

@@ -32,3 +32,19 @@ we may not want this because we only want to work inside a single project
 change `"outputPath": "dist/apps/realworld/frontend/react"` to `"outputPath": "apps/realworld/frontend/react/dist"` inside `project.json`
 
 change to `coverageDirectory: './coverage'` in `jest.config.ts`
+
+
+for convenience, add a `package.json` with the following scripts:
+```
+{
+  "name": "realworld-frontend-react",
+  "scripts": {
+      "start": "nx serve realworld-frontend-react",
+      "build": "nx build realworld-frontend-react",
+      "test": "nx test realworld-frontend-react"
+  },
+  "nx": {
+      "includedScripts": []
+  }
+}
+```
