@@ -10,7 +10,7 @@
       "executor": "@angular-devkit/build-angular:browser",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/realworld/frontend/angular",
+        "outputPath": "apps/realworld/frontend/angular/dist",
         "index": "apps/realworld/frontend/angular/src/index.html",
         "main": "apps/realworld/frontend/angular/src/main.ts",
         "polyfills": ["zone.js"],

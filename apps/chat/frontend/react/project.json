@@ -10,7 +10,7 @@
       "defaultConfiguration": "production",
       "options": {
         "compiler": "babel",
-        "outputPath": "dist/apps/chat/frontend/react",
+        "outputPath": "apps/chat/frontend/react/dist",
         "index": "apps/chat/frontend/react/src/index.html",
         "baseHref": "/",
         "main": "apps/chat/frontend/react/src/main.tsx",

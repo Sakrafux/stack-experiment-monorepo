@@ -3,7 +3,7 @@ export default {
   displayName: 'realworld-frontend-angular',
   preset: '../../../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
-  coverageDirectory: '../../../../coverage/apps/realworld/frontend/angular',
+  coverageDirectory: './coverage',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
       'jest-preset-angular',

@@ -10,7 +10,7 @@
       "defaultConfiguration": "production",
       "options": {
         "compiler": "babel",
-        "outputPath": "dist/apps/realworld/frontend/react",
+        "outputPath": "apps/realworld/frontend/react/dist",
         "index": "apps/realworld/frontend/react/src/index.html",
         "baseHref": "/",
         "main": "apps/realworld/frontend/react/src/main.tsx",
