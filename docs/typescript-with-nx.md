@@ -1,12 +1,16 @@
-install `nx` globally for ease of use like `npm install --global nx@latest`
+# Guide to setup a JavaScript/TypeScript Monorepo with Nx
 
-ideally start out with `npm create nx-workspace` and create an integrated monorepo
+## Root
 
- if repository already exists, run command to create child directory and copy-paste to parent
+Install `nx` globally for ease of use with `npm install --global nx@latest`
 
-`npx nx@latest init` doesn't create all the boilerplate
+Ideally start out with `npm create nx-workspace` and create an integrated monorepo, since this creates all the boilerplate required. If the repository already exists, running the command to create a new (temporary) repository and copy all the required files from there.
 
-in `nx.json` change the following default configuration to whatever you want:
+`npx nx@latest init` doesn't create all the boilerplate and needs some work afterwards.
+
+### Structure
+
+In `nx.json` change the following default configuration to whatever target locations you require:
 
 ```
 "workspaceLayout": {
@@ -15,36 +19,38 @@ in `nx.json` change the following default configuration to whatever you want:
 },
 ```
 
-manually install `@nx/angular`, `@nx/react` or `@nx/node` depending on what applications you want to generate
+You need to manually install `@nx/angular`, `@nx/react` or `@nx/node` depending on what applications you want to generate with `nx`. Alternatively, you can setup projects manually as well.
 
-`nx generate @nx/react:app <app>`
+The command `nx generate @nx/react:app <app>` then creates a fully runnable application.
 
-the target can also be path like `path/to/app` and will start from the specified `appsDir`
+The target for the generate command can also be path like `path/to/app` and will be placed in the specified `appsDir`.
 
 -----
 
-the created projects are fully preconfigured and workable
+## Projects
 
-the default configuration creates both `/dist` and `/coverage` at root level
+The created projects are fully preconfigured and workable. Any `nx`-specific (and some others, e.g. ESLint, tsconfig) configurations reference either the app by its fully qualified path starting from `appsDir` (or `libsDir`) or relative paths like `../../..`
 
-we may not want this because we only want to work inside a single project
+The default configuration creates both `/dist` and `/coverage` at root level, but since we may not want this, because we want to place the output next to its sources, we need to change `"outputPath": "dist/<appsDir>/.../app"` to `"outputPath": "<appsDir>/.../app/dist"` inside `project.json`.
 
-change `"outputPath": "dist/apps/realworld/frontend/react"` to `"outputPath": "apps/realworld/frontend/react/dist"` inside `project.json`
+For the coverage, change to `coverageDirectory: './coverage'` in `jest.config.ts`
 
-change to `coverageDirectory: './coverage'` in `jest.config.ts`
-
-
-for convenience, add a `package.json` with the following scripts:
+For convenience scripts when using the specific project as working directory, add a `package.json` with the following scripts:
 ```
 {
-  "name": "realworld-frontend-react",
+  "name": "<app>",
   "scripts": {
-      "start": "nx serve realworld-frontend-react",
-      "build": "nx build realworld-frontend-react",
-      "test": "nx test realworld-frontend-react"
+      "start": "nx serve <app>",
+      "build": "nx build <app>",
+      "test": "nx test <app>"
   },
   "nx": {
       "includedScripts": []
   }
 }
 ```
+
+-----
+
+## More on this
+https://nx.dev/getting-started/tutorials/integrated-repo-tutorial

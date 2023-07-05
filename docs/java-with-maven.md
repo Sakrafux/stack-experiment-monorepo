@@ -1,6 +1,13 @@
-parent maven pom
+# Guide to setup monorepo capabilities with Maven for Java
 
+## Parent Pom
+
+This `pom.xml` lies in the repo root and will manage all the dependency versions to ensure consistency. Furthermore, it enables local libraries to depend on without the need to upload artifacts.
+
+It is important to mark this pom with the correct packaging mode like this:
 `<packaging>pom</packaging>`
+
+Any new project needs to be registered in the parent pom in the `<modules>`-section:
 
 ```
 <modules>
@@ -9,28 +16,30 @@ parent maven pom
 </modules>
 ```
 
-all dependencies with versions
+All dependencies that are required by any project will need to be specified here as usual.
+
+Since some versions are still required to be annotated in the child poms, handling all versions with `<properties>` is adviced.
 
 ------
 
-in child poms
+## Child Pom
 
-**No** `<packaging>pom</packaging>`
+Ensure that **no** `<packaging>pom</packaging>` is present, as this prevents the building of any artifacts.
 
-reference parent like:
+The parent pom needs to be referenced like this:
 
 ```
 <parent>
-    <groupId>com.sakrafux</groupId>
-    <artifactId>stack-experiment-monorepo</artifactId>
+    <groupId>com.example</groupId>
+    <artifactId>demo</artifactId>
     <version>${revision}</version>
     <relativePath>../../../../pom.xml</relativePath>
 </parent>
 ```
 
-maven variables like `${...}` will be resolved by parent
+The properties defined in the parent are available here as well with simple `${...}` syntax.
 
-compilation targets need to be set by child
+The compilation targets for the compilere need to be set by child pom like this:
 
 ```
 <properties>
@@ -39,10 +48,17 @@ compilation targets need to be set by child
 </properties>
 ```
 
-dependencies without version number -> resolved by parent
+Although all the required dependencies still need to be specified, their version numbers will be automatically inferred by the parent.
 
-build plugins in child, for necessary version references -> variables resolved by parent
+Any required build plugins need to be placed in the child and as they may need to reference dependencies with specific versions, the properties defined by the parent can once again be used to ensure consistency.
 
-config files like `checkstyle.xml` can be referenced relatively like `<configLocation>../../../../checkstyle.xml</configLocation>`
+Config files e.g. `checkstyle.xml` can be referenced relatively like `<configLocation>../../../../checkstyle.xml</configLocation>`.
 
-now application can be run from monorepo root or in the individual project
+The application can now be run from the monorepo root or in the individual project by itself.
+
+-----
+
+## More on this
+https://maven.apache.org/guides/mini/guide-multiple-modules-4.html
+
+https://www.baeldung.com/maven-multi-module

@@ -1,35 +1,45 @@
-create `Cargo.toml` in root
+# Guide to setup monorepo capabilities with Cargo for Rust
 
-declare workspace with members:
+## Parent Cargo.toml
+
+Manually create a `Cargo.toml` in the repo root and declare a workspace with members:
 
 ```
 [workspace]
-members = ["apps/.../rust"]
+members = ["apps/.../app"]
 ```
 
-inherited keys and dependencies like this
+Every new project needs to registered here with its full path.
+
+All the dependencies used by the projects need to be defined for the workspace. Keys (limited variables) can also be defined, both togehter looking like this:
 ```
 [workspace.package]
-authors = ["Andreas Hell"]
+authors = ["Author"]
 
 [workspace.dependencies]
-axum = "0.6.18"
-hyper = { version = "0.14.27", features = ["full"] }
-tokio = { version = "1.29.1", features = ["full"] }
-tower = "0.4.13"
+dependency1 = "0.1.0"
+dependency2 = { version = "0.1.0", features = ["full"] }
 ```
 
 -----
 
-create child project with `cargo new` and fill like usual except inherited keys and dependencies like this:
+## Child Cargo.toml
+
+Create a new project with `cargo new` and use it like usual.
+
+Keys and dependencies can now be inherited like this:
 
 ```
 authors.workspace = true
 
 [dependencies]
-axum.workspace = true
-hyper = { workspace = true, features = ["full"] }
-tokio = { workspace = true, features = ["full"] }
-tower.workspace = true
+dependency1.workspace = true
+dependency2 = { workspace = true, features = ["full"] }
 ```
 
+-----
+
+## More on this
+https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html
+
+https://doc.rust-lang.org/cargo/reference/workspaces.html
