@@ -1,0 +1,11 @@
+[package]
+name = "realworld"
+version = "0.1.0"
+edition = "2021"
+authors.workspace = true
+
+[dependencies]
+axum.workspace = true
+hyper = { workspace = true, features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
+tower.workspace = true
