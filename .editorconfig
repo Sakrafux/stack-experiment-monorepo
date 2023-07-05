@@ -1,7 +1,7 @@
 # Editor configuration, see http://editorconfig.org
 root = true
 
-[*.{js,ts,jsx,tsx}]
+[*.{js,ts,jsx,tsx,html}]
 charset = utf-8
 indent_style = space
 indent_size = 2
