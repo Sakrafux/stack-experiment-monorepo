@@ -9,3 +9,11 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
+logging:
+  file.name: ./log/backend.log
+  level:
+    root: INFO
+    com.sakrafux.sem.realworld.logging: DEBUG
+  pattern:
+    level: r=%X{r} ip=%X{ip} u=%X{u} %5p
