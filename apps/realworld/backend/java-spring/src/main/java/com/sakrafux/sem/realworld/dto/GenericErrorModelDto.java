@@ -20,7 +20,7 @@ public class GenericErrorModelDto {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    static class ErrorsDto {
+    public static class ErrorsDto {
 
         @NotNull
         private List<String> body;
