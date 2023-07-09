@@ -2,7 +2,7 @@ CREATE SEQUENCE seq_user_id
 START 1
 INCREMENT 1
 MINVALUE 1
-OWNED BY user.id;
+OWNED BY app_user.id;
 
 CREATE SEQUENCE seq_article_id
 START 1

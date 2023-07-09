@@ -1,4 +1,4 @@
-CREATE TABLE [user] (
+CREATE TABLE [app_user] (
   [id] integer PRIMARY KEY,
   [username] varchar(50) UNIQUE NOT NULL,
   [email] varchar(100) UNIQUE NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE [favorite_is_article_to_user] (
 )
 GO
 
-CREATE INDEX [ix_user_username] ON [user] ("username")
+CREATE INDEX [ix_user_username] ON [app_user] ("username")
 GO
 
 CREATE INDEX [ix_article_slug] ON [article] ("slug")
@@ -83,19 +83,19 @@ GO
 CREATE INDEX [ix_tag_tag] ON [tag] ("tag")
 GO
 
-ALTER TABLE [article] ADD FOREIGN KEY ([fk_author]) REFERENCES [user] ([id])
+ALTER TABLE [article] ADD FOREIGN KEY ([fk_author]) REFERENCES [app_user] ([id])
 GO
 
 ALTER TABLE [comment] ADD FOREIGN KEY ([fk_article]) REFERENCES [article] ([id])
 GO
 
-ALTER TABLE [comment] ADD FOREIGN KEY ([fk_author]) REFERENCES [user] ([id])
+ALTER TABLE [comment] ADD FOREIGN KEY ([fk_author]) REFERENCES [app_user] ([id])
 GO
 
-ALTER TABLE [follow_is_user_to_user] ADD FOREIGN KEY ([following_user_id]) REFERENCES [user] ([id])
+ALTER TABLE [follow_is_user_to_user] ADD FOREIGN KEY ([following_user_id]) REFERENCES [app_user] ([id])
 GO
 
-ALTER TABLE [follow_is_user_to_user] ADD FOREIGN KEY ([followed_user_id]) REFERENCES [user] ([id])
+ALTER TABLE [follow_is_user_to_user] ADD FOREIGN KEY ([followed_user_id]) REFERENCES [app_user] ([id])
 GO
 
 ALTER TABLE [tag_is_article_to_tag] ADD FOREIGN KEY ([article_id]) REFERENCES [article] ([id])
@@ -107,5 +107,5 @@ GO
 ALTER TABLE [favorite_is_article_to_user] ADD FOREIGN KEY ([article_id]) REFERENCES [article] ([id])
 GO
 
-ALTER TABLE [favorite_is_article_to_user] ADD FOREIGN KEY ([user_id]) REFERENCES [user] ([id])
+ALTER TABLE [favorite_is_article_to_user] ADD FOREIGN KEY ([user_id]) REFERENCES [app_user] ([id])
 GO
