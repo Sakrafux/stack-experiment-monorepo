@@ -57,7 +57,7 @@ public class ApplicationUser {
     private LocalDateTime updatedAt;
 
     @Column(name = "version")
-    private Long version;
+    private Integer version;
 
     @OneToMany(mappedBy = "author")
     @EqualsAndHashCode.Exclude

@@ -55,7 +55,7 @@ public class Article {
     private LocalDateTime updatedAt;
 
     @Column(name = "version")
-    private Long version;
+    private Integer version;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "fk_author", nullable = false)

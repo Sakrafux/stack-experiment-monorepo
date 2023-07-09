@@ -1,8 +1,8 @@
 CREATE TABLE [app_user] (
-  [id] integer PRIMARY KEY,
+  [id] bigint PRIMARY KEY,
   [username] varchar(50) UNIQUE NOT NULL,
   [email] varchar(100) UNIQUE NOT NULL,
-  [password] binary(60) NOT NULL,
+  [password] varchar(60) NOT NULL,
   [bio] varchar(255) NOT NULL,
   [image] varchar(255),
   [created_at] timestamp,
@@ -12,12 +12,12 @@ CREATE TABLE [app_user] (
 GO
 
 CREATE TABLE [article] (
-  [id] integer PRIMARY KEY,
+  [id] bigint PRIMARY KEY,
   [slug] varchar(100) UNIQUE NOT NULL,
   [title] varchar(100) UNIQUE NOT NULL,
   [description] varchar(255) NOT NULL,
   [body] text NOT NULL,
-  [fk_author] integer NOT NULL,
+  [fk_author] bigint NOT NULL,
   [created_at] timestamp,
   [updated_at] timestamp,
   [version] integer
@@ -25,10 +25,10 @@ CREATE TABLE [article] (
 GO
 
 CREATE TABLE [comment] (
-  [id] integer PRIMARY KEY,
+  [id] bigint PRIMARY KEY,
   [body] text NOT NULL,
-  [fk_article] integer NOT NULL,
-  [fk_author] integer NOT NULL,
+  [fk_article] bigint NOT NULL,
+  [fk_author] bigint NOT NULL,
   [created_at] timestamp,
   [updated_at] timestamp,
   [version] integer
@@ -36,7 +36,7 @@ CREATE TABLE [comment] (
 GO
 
 CREATE TABLE [tag] (
-  [id] integer PRIMARY KEY,
+  [id] bigint PRIMARY KEY,
   [tag] varchar(20) NOT NULL,
   [created_at] timestamp,
   [updated_at] timestamp,
@@ -45,22 +45,22 @@ CREATE TABLE [tag] (
 GO
 
 CREATE TABLE [follow_is_user_to_user] (
-  [following_user_id] integer,
-  [followed_user_id] integer,
+  [following_user_id] bigint,
+  [followed_user_id] bigint,
   PRIMARY KEY ([following_user_id], [followed_user_id])
 )
 GO
 
 CREATE TABLE [tag_is_article_to_tag] (
-  [article_id] integer,
-  [tag_id] integer,
+  [article_id] bigint,
+  [tag_id] bigint,
   PRIMARY KEY ([article_id], [tag_id])
 )
 GO
 
 CREATE TABLE [favorite_is_article_to_user] (
-  [article_id] integer,
-  [user_id] integer,
+  [article_id] bigint,
+  [user_id] bigint,
   PRIMARY KEY ([article_id], [user_id])
 )
 GO

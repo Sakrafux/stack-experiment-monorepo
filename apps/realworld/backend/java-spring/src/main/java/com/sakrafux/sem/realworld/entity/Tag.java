@@ -42,7 +42,7 @@ public class Tag {
     private LocalDateTime updatedAt;
 
     @Column(name = "version")
-    private Long version;
+    private Integer version;
 
     @ManyToMany(mappedBy = "tags")
     @EqualsAndHashCode.Exclude

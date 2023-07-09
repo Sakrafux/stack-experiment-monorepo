@@ -40,7 +40,7 @@ public class Comment {
     private LocalDateTime updatedAt;
 
     @Column(name = "version")
-    private Long version;
+    private Integer version;
 
     @JoinColumn(name = "fk_author", nullable = false)
     @ManyToOne(optional = false)
