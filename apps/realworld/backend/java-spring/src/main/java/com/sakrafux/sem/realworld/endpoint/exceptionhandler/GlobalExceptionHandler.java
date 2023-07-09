@@ -1,7 +1,6 @@
 package com.sakrafux.sem.realworld.endpoint.exceptionhandler;
 
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
-import com.sakrafux.sem.realworld.exception.response.UnauthorizedResponseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,13 +14,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 @RequiredArgsConstructor
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ResponseBody
-    public void handleUnauthorizedResponseException(UnauthorizedResponseException e) {
-        log.warn("Terminating request processing with status 401 due to {}: {}", e.getClass().getSimpleName(), e.getMessage());
-    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)

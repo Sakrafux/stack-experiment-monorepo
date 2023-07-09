@@ -3,7 +3,6 @@ package com.sakrafux.sem.realworld.endpoint;
 import com.sakrafux.sem.realworld.dto.request.UpdateUserRequestDto;
 import com.sakrafux.sem.realworld.dto.response.UserResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
-import com.sakrafux.sem.realworld.exception.response.UnauthorizedResponseException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,8 +22,7 @@ public class UserEndpoint {
     @Secured("ROLE_USER")
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseDto getCurrentUser() throws UnauthorizedResponseException,
-        GenericErrorResponseException {
+    public UserResponseDto getCurrentUser() throws GenericErrorResponseException {
         return null;
     }
 
@@ -32,7 +30,7 @@ public class UserEndpoint {
     @PutMapping()
     @ResponseStatus(HttpStatus.OK)
     public UserResponseDto updateCurrentUser(@Valid @RequestBody UpdateUserRequestDto dto)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 

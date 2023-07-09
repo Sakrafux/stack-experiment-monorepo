@@ -8,7 +8,6 @@ import com.sakrafux.sem.realworld.dto.response.MultipleCommentsResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleArticleResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleCommentResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
-import com.sakrafux.sem.realworld.exception.response.UnauthorizedResponseException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,7 +32,7 @@ public class ArticlesEndpoint {
     @GetMapping("/feed")
     @ResponseStatus(HttpStatus.OK)
     public MultipleArticlesResponseDto getArticlesFeed(@Valid PaginationParamDto params)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -43,7 +42,7 @@ public class ArticlesEndpoint {
                                                    @RequestParam(required = false) String tag,
                                                    @RequestParam(required = false) String author,
                                                    @RequestParam(required = false) String favorited)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -51,7 +50,7 @@ public class ArticlesEndpoint {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public MultipleArticlesResponseDto createArticle(@Valid @RequestBody NewArticleRequestDto dto)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -67,7 +66,7 @@ public class ArticlesEndpoint {
     @ResponseStatus(HttpStatus.OK)
     public SingleArticleResponseDto updateArticle(@PathVariable String slug,
                                                   @Valid @RequestBody UpdateArticleRequestDto dto)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -75,13 +74,13 @@ public class ArticlesEndpoint {
     @DeleteMapping("/{slug}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteArticle(@PathVariable String slug)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
     }
 
     @GetMapping("/{slug}/comments")
     @ResponseStatus(HttpStatus.OK)
     public MultipleCommentsResponseDto getArticleComments(@PathVariable String slug)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -90,7 +89,7 @@ public class ArticlesEndpoint {
     @ResponseStatus(HttpStatus.OK)
     public SingleCommentResponseDto createArticleComment(@PathVariable String slug,
                                                          @Valid @RequestBody SingleCommentResponseDto dto)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -98,14 +97,14 @@ public class ArticlesEndpoint {
     @DeleteMapping("/{slug}/comments/{id}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteArticleComment(@PathVariable String slug, @PathVariable Long id)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
     }
 
     @Secured("ROLE_USER")
     @PostMapping("/{slug}/favorite")
     @ResponseStatus(HttpStatus.OK)
     public SingleArticleResponseDto createArticleFavorite(@PathVariable String slug)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -113,7 +112,7 @@ public class ArticlesEndpoint {
     @DeleteMapping("/{slug}/favorite")
     @ResponseStatus(HttpStatus.OK)
     public SingleArticleResponseDto deleteArticleFavorite(@PathVariable String slug)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 

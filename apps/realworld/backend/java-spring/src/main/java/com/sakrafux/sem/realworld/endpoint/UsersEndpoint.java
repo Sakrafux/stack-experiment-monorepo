@@ -4,7 +4,6 @@ import com.sakrafux.sem.realworld.dto.NewUserDto;
 import com.sakrafux.sem.realworld.dto.request.LoginUserRequestDto;
 import com.sakrafux.sem.realworld.dto.response.UserResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
-import com.sakrafux.sem.realworld.exception.response.UnauthorizedResponseException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +21,7 @@ public class UsersEndpoint {
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     public UserResponseDto login(@Valid @RequestBody LoginUserRequestDto dto) throws
-        UnauthorizedResponseException, GenericErrorResponseException {
+        GenericErrorResponseException {
         return null;
     }
 

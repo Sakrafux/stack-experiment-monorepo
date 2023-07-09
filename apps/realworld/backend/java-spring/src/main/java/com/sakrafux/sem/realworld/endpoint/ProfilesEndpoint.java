@@ -2,7 +2,6 @@ package com.sakrafux.sem.realworld.endpoint;
 
 import com.sakrafux.sem.realworld.dto.response.ProfileResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
-import com.sakrafux.sem.realworld.exception.response.UnauthorizedResponseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
@@ -22,7 +21,7 @@ public class ProfilesEndpoint {
     @GetMapping("/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ProfileResponseDto getProfileByUsername(@PathVariable("username") String username)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -30,7 +29,7 @@ public class ProfilesEndpoint {
     @PostMapping("/{username}/follow")
     @ResponseStatus(HttpStatus.OK)
     public ProfileResponseDto followUserByUsername(@PathVariable("username") String username)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
@@ -38,7 +37,7 @@ public class ProfilesEndpoint {
     @DeleteMapping("/{username}/follow")
     @ResponseStatus(HttpStatus.OK)
     public ProfileResponseDto unfollowUserByUsername(@PathVariable("username") String username)
-        throws UnauthorizedResponseException, GenericErrorResponseException {
+        throws GenericErrorResponseException {
         return null;
     }
 
