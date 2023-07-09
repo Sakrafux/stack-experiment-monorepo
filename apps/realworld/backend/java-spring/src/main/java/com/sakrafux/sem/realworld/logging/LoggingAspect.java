@@ -35,20 +35,7 @@ public class LoggingAspect {
     public Object logMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
 
-        log.info(
-            "Before method: " + joinPoint.getSignature().getDeclaringType().getSimpleName() + "."
-                + joinPoint.getSignature().getName());
-        log.debug("Called with argument(s): " + getJoinPointArgs(joinPoint));
-
-        Object result = joinPoint.proceed();
-
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-        log.info("After method in " + duration + "ms: " +
-            joinPoint.getSignature().getDeclaringType().getSimpleName() + "."
-            + joinPoint.getSignature().getName());
-        log.debug("With result: " + (result != null ? result.toString() : "null"));
-        return result;
+        return logJoinPointExecution(joinPoint, startTime);
     }
 
     @Around("endpointPointcut()")
@@ -93,7 +80,16 @@ public class LoggingAspect {
             path = new String[]{""};
         }
 
+        log.info("-------------------------------------------");
         log.info(method + "-Endpoint: " + rootPath[0] + path[0]);
+        Object result = logJoinPointExecution(joinPoint, startTime);
+        log.info(method + "-Endpoint: " + rootPath[0] + path[0]);
+        log.info("-------------------------------------------");
+        return result;
+    }
+
+    private Object logJoinPointExecution(ProceedingJoinPoint joinPoint, long startTime)
+        throws Throwable {
         log.info(
             "Before method: " + joinPoint.getSignature().getDeclaringType().getSimpleName() + "."
                 + joinPoint.getSignature().getName());
@@ -103,11 +99,11 @@ public class LoggingAspect {
 
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
-        log.info(method + "-Endpoint: " + rootPath[0] + path[0]);
         log.info("After method in " + duration + "ms: " +
             joinPoint.getSignature().getDeclaringType().getSimpleName() + "."
             + joinPoint.getSignature().getName());
         log.debug("With result: " + (result != null ? result.toString() : "null"));
+
         return result;
     }
 
