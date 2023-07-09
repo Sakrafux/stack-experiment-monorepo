@@ -21,3 +21,10 @@ For more information on how to this works with other frontends/backends, head ov
 
 > npm install, npm start, etc.
 
+# Statistics
+
+### Experience Level: Advanced
+
+## Time to Complete
+
+4h so far
