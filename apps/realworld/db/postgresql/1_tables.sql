@@ -60,6 +60,8 @@ CREATE TABLE "favorite_is_article_to_user" (
 
 CREATE INDEX "ix_user_username" ON "app_user" ("username");
 
+CREATE INDEX "ix_user_email" ON "app_user" ("email");
+
 CREATE INDEX "ix_article_slug" ON "article" ("slug");
 
 CREATE INDEX "ix_article_fk_author" ON "article" ("fk_author");

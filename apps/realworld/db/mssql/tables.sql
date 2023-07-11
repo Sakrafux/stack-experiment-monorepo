@@ -68,6 +68,9 @@ GO
 CREATE INDEX [ix_user_username] ON [app_user] ("username")
 GO
 
+CREATE INDEX [ix_user_email] ON [app_user] ("email")
+GO
+
 CREATE INDEX [ix_article_slug] ON [article] ("slug")
 GO
 
