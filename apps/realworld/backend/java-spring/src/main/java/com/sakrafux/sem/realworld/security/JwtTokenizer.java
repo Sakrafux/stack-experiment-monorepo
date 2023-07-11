@@ -3,7 +3,6 @@ package com.sakrafux.sem.realworld.security;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenizer {
+
+    public String getAuthToken(String user) {
+        return getAuthToken(user, List.of("ROLE_USER"));
+    }
 
     public String getAuthToken(String user, List<String> roles) {
         byte[] signingKey = SecurityProperties.SECRET.getBytes();
@@ -25,11 +28,6 @@ public class JwtTokenizer {
             .claim("rol", roles)
             .compact();
         return SecurityProperties.PREFIX + token;
-    }
-
-    @PostConstruct
-    public void init() {
-        System.out.println(new JwtTokenizer().getAuthToken("User", List.of("ROLE_USER")));
     }
 
 }
