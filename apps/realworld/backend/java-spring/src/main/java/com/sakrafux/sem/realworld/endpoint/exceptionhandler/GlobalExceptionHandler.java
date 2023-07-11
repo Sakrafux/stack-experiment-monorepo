@@ -1,6 +1,7 @@
 package com.sakrafux.sem.realworld.endpoint.exceptionhandler;
 
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
+import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import com.sakrafux.sem.realworld.exception.response.UnauthorizedResponseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status,
         WebRequest request) {
         return super.handleMethodArgumentNotValid(ex, headers, HttpStatus.UNPROCESSABLE_ENTITY, request);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public void handleGenericErrorResponseException(NotFoundResponseException e) {
+        log.warn("Terminating request processing with status 404 due to {}: {}", e.getClass().getSimpleName(), e.getMessage());
     }
 
 }
