@@ -27,7 +27,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final ApplicationUserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain chain)
         throws IOException, ServletException {
 
         try {
@@ -52,14 +53,15 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             return null;
         }
 
-        if (!token.startsWith(SecurityProperties.PREFIX)) {
-            throw new IllegalArgumentException("Authorization header is malformed or missing");
-        }
+        SecurityProperties.PREFIX.stream().filter(token::startsWith).findFirst().orElseThrow(
+            () -> new IllegalArgumentException("Authorization header is malformed or missing"));
 
         byte[] signingKey = SecurityProperties.SECRET.getBytes();
 
+        String parsedToken = SecurityProperties.PREFIX.stream().reduce(token, (s, s2) -> s.replace(s2, ""));
+
         Claims claims = Jwts.parserBuilder().setSigningKey(signingKey).build()
-            .parseClaimsJws(token.replace(SecurityProperties.PREFIX, ""))
+            .parseClaimsJws(parsedToken)
             .getBody();
 
         String username = claims.getSubject();

@@ -3,6 +3,7 @@ package com.sakrafux.sem.realworld.endpoint;
 import com.sakrafux.sem.realworld.dto.request.UpdateUserRequestDto;
 import com.sakrafux.sem.realworld.dto.response.UserResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
+import com.sakrafux.sem.realworld.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,11 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserEndpoint {
 
+    private final UserService userService;
+
     @Secured("ROLE_USER")
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseDto getCurrentUser() throws GenericErrorResponseException {
-        return null;
+    public UserResponseDto getCurrentUser() {
+        return new UserResponseDto(userService.getCurrentUser());
     }
 
     @Secured("ROLE_USER")
@@ -31,7 +34,7 @@ public class UserEndpoint {
     @ResponseStatus(HttpStatus.OK)
     public UserResponseDto updateCurrentUser(@Valid @RequestBody UpdateUserRequestDto dto)
         throws GenericErrorResponseException {
-        return null;
+        return new UserResponseDto(userService.updateUser(dto.getUser()));
     }
 
 }
