@@ -6,6 +6,7 @@ create or replace function set_created_at()
 $$
 begin
     NEW.created_at = now();
+    NEW.updated_at = now();
     NEW.version = 0;
     return NEW;
 end;

@@ -37,7 +37,7 @@ GO
 
 CREATE TABLE [tag] (
   [id] bigint PRIMARY KEY,
-  [tag] varchar(20) NOT NULL,
+  [tag] varchar(20) UNIQUE NOT NULL,
   [created_at] timestamp,
   [updated_at] timestamp,
   [version] integer
