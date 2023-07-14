@@ -27,4 +27,4 @@ For more information on how to this works with other frontends/backends, head ov
 
 ## Time to Complete
 
-4h so far
+8h so far
