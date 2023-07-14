@@ -8,6 +8,7 @@ import com.sakrafux.sem.realworld.dto.response.MultipleCommentsResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleArticleResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleCommentResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
+import com.sakrafux.sem.realworld.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ArticlesEndpoint {
 
+    private final ArticleService articleService;
+
     @Secured("ROLE_USER")
     @GetMapping("/feed")
     @ResponseStatus(HttpStatus.OK)
@@ -41,17 +44,18 @@ public class ArticlesEndpoint {
     public MultipleArticlesResponseDto getArticles(@Valid PaginationParamDto params,
                                                    @RequestParam(required = false) String tag,
                                                    @RequestParam(required = false) String author,
-                                                   @RequestParam(required = false) String favorited)
-        throws GenericErrorResponseException {
-        return null;
+                                                   @RequestParam(required = false)
+                                                       String favoritedBy) {
+        var articles = articleService.getArticles(params, tag, author, favoritedBy);
+        return new MultipleArticlesResponseDto(articles.getSecond().intValue(),
+            articles.getFirst());
     }
 
     @Secured("ROLE_USER")
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public MultipleArticlesResponseDto createArticle(@Valid @RequestBody NewArticleRequestDto dto)
-        throws GenericErrorResponseException {
-        return null;
+    public SingleArticleResponseDto createArticle(@Valid @RequestBody NewArticleRequestDto dto) {
+        return new SingleArticleResponseDto(articleService.createArticle(dto.getArticle()));
     }
 
     @GetMapping("/{slug}")
@@ -88,7 +92,8 @@ public class ArticlesEndpoint {
     @PostMapping("/{slug}/comments")
     @ResponseStatus(HttpStatus.OK)
     public SingleCommentResponseDto createArticleComment(@PathVariable String slug,
-                                                         @Valid @RequestBody SingleCommentResponseDto dto)
+                                                         @Valid @RequestBody
+                                                             SingleCommentResponseDto dto)
         throws GenericErrorResponseException {
         return null;
     }

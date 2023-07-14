@@ -32,7 +32,7 @@ public class Tag {
     @EqualsAndHashCode.Exclude
     private Long id;
 
-    @Column(name = "tag", updatable = false, length = 20, nullable = false)
+    @Column(name = "tag", updatable = false, length = 20, nullable = false, unique = true)
     private String tag;
 
     @Column(name = "created_at")
