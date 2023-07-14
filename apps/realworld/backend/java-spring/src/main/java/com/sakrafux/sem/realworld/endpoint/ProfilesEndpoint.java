@@ -1,7 +1,6 @@
 package com.sakrafux.sem.realworld.endpoint;
 
 import com.sakrafux.sem.realworld.dto.response.ProfileResponseDto;
-import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
 import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import com.sakrafux.sem.realworld.service.ProfileService;
 import lombok.RequiredArgsConstructor;

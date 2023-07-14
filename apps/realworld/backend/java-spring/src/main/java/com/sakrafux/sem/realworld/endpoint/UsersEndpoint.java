@@ -1,12 +1,11 @@
 package com.sakrafux.sem.realworld.endpoint;
 
-import com.sakrafux.sem.realworld.dto.NewUserDto;
 import com.sakrafux.sem.realworld.dto.request.LoginUserRequestDto;
 import com.sakrafux.sem.realworld.dto.request.NewUserRequestDto;
 import com.sakrafux.sem.realworld.dto.response.UserResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
 import com.sakrafux.sem.realworld.exception.response.UnauthorizedResponseException;
-import com.sakrafux.sem.realworld.service.UsersService;
+import com.sakrafux.sem.realworld.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,21 +20,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UsersEndpoint {
 
-    private final UsersService usersService;
+    private final UserService userService;
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     public UserResponseDto login(@Valid @RequestBody LoginUserRequestDto dto) throws
         UnauthorizedResponseException {
         return new UserResponseDto(
-            usersService.login(dto.getUser().getEmail(), dto.getUser().getPassword()));
+            userService.login(dto.getUser().getEmail(), dto.getUser().getPassword()));
     }
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponseDto createUser(@Valid @RequestBody NewUserRequestDto dto)
         throws GenericErrorResponseException {
-        return new UserResponseDto(usersService.createUser(dto.getUser().getUsername(), dto.getUser().getEmail(),
+        return new UserResponseDto(userService.createUser(dto.getUser().getUsername(), dto.getUser().getEmail(),
             dto.getUser().getPassword()));
     }
 
