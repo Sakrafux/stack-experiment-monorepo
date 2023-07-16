@@ -15,16 +15,25 @@ For more information on how to this works with other frontends/backends, head ov
 
 # How it works
 
-> Describe the general architecture of your app here
+It's a simple Java Spring Boot 3 application. 
 
-# Getting started
+The openapi specification has been faithfully translated to dto, entity and endpoint classes.
 
-> npm install, npm start, etc.
+Security has been handled via Spring Security 6.
+
+Database access is done via JPA and Hibernate.
+
+Mappings have been done via MapStruct.
+
+Endpoints are handled via Spring MVC Rest Controllers.
+
+----
+Tests are only done to showcase both unit and integration tests.
 
 # Statistics
 
-### Experience Level: Advanced
+### Experience Level (Language): 4/5
 
-## Time to Complete
+### Experience Level (Framework): 3/5
 
-10h so far
+### Time to Complete: 11h
