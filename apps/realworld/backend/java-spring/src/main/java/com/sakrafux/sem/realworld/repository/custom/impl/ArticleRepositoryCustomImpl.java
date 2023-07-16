@@ -42,7 +42,7 @@ public class ArticleRepositoryCustomImpl implements ArticleRepositoryCustom {
         var countPair = getArticlesByCriteriaQuery(countQuery, tag, author, favoritedBy);
         countQuery = countPair.getFirst();
         root = countPair.getSecond();
-        countQuery.select(cb.count(root));
+        countQuery.select(cb.countDistinct(root));
 
         var count = em.createQuery(countQuery).getSingleResult();
 

@@ -1,6 +1,7 @@
 package com.sakrafux.sem.realworld.endpoint;
 
 import com.sakrafux.sem.realworld.dto.request.NewArticleRequestDto;
+import com.sakrafux.sem.realworld.dto.request.NewCommentRequestDto;
 import com.sakrafux.sem.realworld.dto.request.PaginationParamDto;
 import com.sakrafux.sem.realworld.dto.request.UpdateArticleRequestDto;
 import com.sakrafux.sem.realworld.dto.response.MultipleArticlesResponseDto;
@@ -86,8 +87,8 @@ public class ArticlesEndpoint {
     @GetMapping("/{slug}/comments")
     @ResponseStatus(HttpStatus.OK)
     public MultipleCommentsResponseDto getArticleComments(@PathVariable String slug)
-        throws GenericErrorResponseException {
-        return null;
+        throws NotFoundResponseException {
+        return new MultipleCommentsResponseDto(articleService.getArticleComments(slug));
     }
 
     @Secured("ROLE_USER")
@@ -95,32 +96,33 @@ public class ArticlesEndpoint {
     @ResponseStatus(HttpStatus.OK)
     public SingleCommentResponseDto createArticleComment(@PathVariable String slug,
                                                          @Valid @RequestBody
-                                                             SingleCommentResponseDto dto)
-        throws GenericErrorResponseException {
-        return null;
+                                                             NewCommentRequestDto dto)
+        throws NotFoundResponseException {
+        return new SingleCommentResponseDto(
+            articleService.createArticleComment(slug, dto.getComment()));
     }
 
     @Secured("ROLE_USER")
     @DeleteMapping("/{slug}/comments/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteArticleComment(@PathVariable String slug, @PathVariable Long id)
-        throws GenericErrorResponseException {
+    public void deleteArticleComment(@PathVariable String slug, @PathVariable Long id) {
+        articleService.deleteArticleComment(slug, id);
     }
 
     @Secured("ROLE_USER")
     @PostMapping("/{slug}/favorite")
     @ResponseStatus(HttpStatus.OK)
     public SingleArticleResponseDto createArticleFavorite(@PathVariable String slug)
-        throws GenericErrorResponseException {
-        return null;
+        throws NotFoundResponseException {
+        return new SingleArticleResponseDto(articleService.favoriteArticle(slug));
     }
 
     @Secured("ROLE_USER")
     @DeleteMapping("/{slug}/favorite")
     @ResponseStatus(HttpStatus.OK)
     public SingleArticleResponseDto deleteArticleFavorite(@PathVariable String slug)
-        throws GenericErrorResponseException {
-        return null;
+        throws NotFoundResponseException {
+        return new SingleArticleResponseDto(articleService.unfavoriteArticle(slug));
     }
 
 }

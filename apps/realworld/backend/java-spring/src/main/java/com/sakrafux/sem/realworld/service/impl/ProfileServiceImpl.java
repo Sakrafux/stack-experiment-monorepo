@@ -45,9 +45,11 @@ public class ProfileServiceImpl implements ProfileService {
         var user = applicationUserRepository.findByUsername(username)
             .orElseThrow(() -> new NotFoundResponseException("Profile not found."));
 
-        user.getFollowers().add(AuthUtil.getCurrentUser());
+        var currentUser = applicationUserRepository.findById(AuthUtil.getCurrentUser().getId()).orElseThrow(null);
 
-        applicationUserRepository.save(user);
+        currentUser.getFollowing().add(user);
+
+        applicationUserRepository.save(currentUser);
 
         return profileMapper.entityToDto(user, true);
     }
@@ -58,9 +60,11 @@ public class ProfileServiceImpl implements ProfileService {
         var user = applicationUserRepository.findByUsername(username)
             .orElseThrow(() -> new NotFoundResponseException("Profile not found."));
 
-        user.getFollowers().remove(AuthUtil.getCurrentUser());
+        var currentUser = applicationUserRepository.findById(AuthUtil.getCurrentUser().getId()).orElseThrow(null);
 
-        applicationUserRepository.save(user);
+        currentUser.getFollowing().remove(user);
+
+        applicationUserRepository.save(currentUser);
 
         return profileMapper.entityToDto(user, false);
     }

@@ -11,8 +11,10 @@ import com.sakrafux.sem.realworld.entity.Article;
 import com.sakrafux.sem.realworld.entity.Tag;
 import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import com.sakrafux.sem.realworld.mapper.ArticleMapper;
+import com.sakrafux.sem.realworld.mapper.CommentMapper;
 import com.sakrafux.sem.realworld.repository.ApplicationUserRepository;
 import com.sakrafux.sem.realworld.repository.ArticleRepository;
+import com.sakrafux.sem.realworld.repository.CommentRepository;
 import com.sakrafux.sem.realworld.repository.TagRepository;
 import com.sakrafux.sem.realworld.service.ArticleService;
 import com.sakrafux.sem.realworld.service.ProfileService;
@@ -33,10 +35,12 @@ public class ArticleServiceImpl implements ArticleService {
     private final ArticleRepository articleRepository;
     private final ApplicationUserRepository applicationUserRepository;
     private final TagRepository tagRepository;
+    private final CommentRepository commentRepository;
 
     private final ProfileService profileService;
 
     private final ArticleMapper articleMapper;
+    private final CommentMapper commentMapper;
 
     @Override
     @Transactional
@@ -58,6 +62,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public Pair<List<ArticleDto>, Long> getArticlesFeed(PaginationParamDto params) {
         var currentUser = AuthUtil.getCurrentUser();
         var articles = articleRepository.findAllByFollowedUsers(currentUser.getId(), PageRequest.of(
@@ -132,33 +137,82 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public void deleteArticle(String slug) {
         articleRepository.deleteBySlug(slug);
     }
 
     @Override
-    public CommentDto createArticleComment(String slug, NewCommentDto commentDto) {
-        return null;
+    public CommentDto createArticleComment(String slug, NewCommentDto commentDto)
+        throws NotFoundResponseException {
+        var article = articleRepository.findBySlug(slug).orElseThrow(
+            () -> new NotFoundResponseException("Article not found"));
+
+        var currentUser = AuthUtil.getCurrentUser();
+
+        var comment = commentMapper.newDtoToEntity(commentDto);
+        comment.setArticle(article);
+        comment.setAuthor(currentUser);
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(LocalDateTime.now());
+
+        comment = commentRepository.save(comment);
+
+        var resultDto = commentMapper.entityToDto(comment);
+        resultDto.setAuthor(profileService.getProfileByUsername(currentUser.getUsername()));
+
+        return resultDto;
     }
 
     @Override
-    public List<CommentDto> getArticleComments(String slug) {
-        return null;
+    @Transactional
+    public List<CommentDto> getArticleComments(String slug) throws NotFoundResponseException {
+        var comments = articleRepository.findBySlug(slug).orElseThrow(
+            () -> new NotFoundResponseException("Article not found")).getComments();
+
+        return comments.stream().map(comment -> {
+            var commentDto = commentMapper.entityToDto(comment);
+
+            try {
+                commentDto.setAuthor(profileService.getProfileByUsername(comment.getAuthor().getUsername()));
+            } catch (NotFoundResponseException ignored) {
+            }
+            return commentDto;
+        }).toList();
     }
 
     @Override
+    @Transactional
     public void deleteArticleComment(String slug, Long id) {
-
+        commentRepository.deleteByArticleSlugAndId(slug, id);
     }
 
     @Override
-    public void favoriteArticle(String slug) {
+    @Transactional
+    public ArticleDto favoriteArticle(String slug) throws NotFoundResponseException {
+        var article = articleRepository.findBySlug(slug).orElseThrow(
+            () -> new NotFoundResponseException("Article not found"));
 
+        var currentUser = AuthUtil.getCurrentUser();
+
+        article.getFavoritedBy().add(currentUser);
+        articleRepository.save(article);
+
+        return mapArticleWithAuthor(currentUser, article);
     }
 
     @Override
-    public void unfavoriteArticle(String slug) {
+    @Transactional
+    public ArticleDto unfavoriteArticle(String slug) throws NotFoundResponseException {
+        var article = articleRepository.findBySlug(slug).orElseThrow(
+            () -> new NotFoundResponseException("Article not found"));
 
+        var currentUser = AuthUtil.getCurrentUser();
+
+        article.getFavoritedBy().remove(currentUser);
+        articleRepository.save(article);
+
+        return mapArticleWithAuthor(currentUser, article);
     }
 
     private boolean isFavoritedByCurrentUser(Article article, ApplicationUser currentUser) {

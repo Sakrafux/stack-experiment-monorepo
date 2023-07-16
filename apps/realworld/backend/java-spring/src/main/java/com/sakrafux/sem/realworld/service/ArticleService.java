@@ -26,14 +26,15 @@ public interface ArticleService {
 
     void deleteArticle(String slug);
 
-    CommentDto createArticleComment(String slug, NewCommentDto commentDto);
+    CommentDto createArticleComment(String slug, NewCommentDto commentDto)
+        throws NotFoundResponseException;
 
-    List<CommentDto> getArticleComments(String slug);
+    List<CommentDto> getArticleComments(String slug) throws NotFoundResponseException;
 
     void deleteArticleComment(String slug, Long id);
 
-    void favoriteArticle(String slug);
+    ArticleDto favoriteArticle(String slug) throws NotFoundResponseException;
 
-    void unfavoriteArticle(String slug);
+    ArticleDto unfavoriteArticle(String slug) throws NotFoundResponseException;
 
 }
