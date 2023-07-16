@@ -8,6 +8,7 @@ import com.sakrafux.sem.realworld.dto.response.MultipleCommentsResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleArticleResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleCommentResponseDto;
 import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
+import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import com.sakrafux.sem.realworld.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +35,10 @@ public class ArticlesEndpoint {
     @Secured("ROLE_USER")
     @GetMapping("/feed")
     @ResponseStatus(HttpStatus.OK)
-    public MultipleArticlesResponseDto getArticlesFeed(@Valid PaginationParamDto params)
-        throws GenericErrorResponseException {
-        return null;
+    public MultipleArticlesResponseDto getArticlesFeed(@Valid PaginationParamDto params) {
+        var articles = articleService.getArticlesFeed(params);
+        return new MultipleArticlesResponseDto(articles.getSecond().intValue(),
+            articles.getFirst());
     }
 
     @GetMapping()
@@ -61,8 +63,8 @@ public class ArticlesEndpoint {
     @GetMapping("/{slug}")
     @ResponseStatus(HttpStatus.OK)
     public SingleArticleResponseDto getArticle(@PathVariable String slug)
-        throws GenericErrorResponseException {
-        return null;
+        throws NotFoundResponseException {
+        return new SingleArticleResponseDto(articleService.getArticle(slug));
     }
 
     @Secured("ROLE_USER")
@@ -70,15 +72,15 @@ public class ArticlesEndpoint {
     @ResponseStatus(HttpStatus.OK)
     public SingleArticleResponseDto updateArticle(@PathVariable String slug,
                                                   @Valid @RequestBody UpdateArticleRequestDto dto)
-        throws GenericErrorResponseException {
-        return null;
+        throws NotFoundResponseException {
+        return new SingleArticleResponseDto(articleService.updateArticle(slug, dto.getArticle()));
     }
 
     @Secured("ROLE_USER")
     @DeleteMapping("/{slug}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteArticle(@PathVariable String slug)
-        throws GenericErrorResponseException {
+    public void deleteArticle(@PathVariable String slug) {
+        articleService.deleteArticle(slug);
     }
 
     @GetMapping("/{slug}/comments")

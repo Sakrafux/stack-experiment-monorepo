@@ -21,6 +21,8 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -50,30 +52,34 @@ public class ArticleServiceImpl implements ArticleService {
         }
 
         var finalCurrentUser = currentUser;
-        var results = articles.stream().map(article -> {
-            var articleDto = articleMapper.entityToDto(article);
-
-            articleDto.setFavorited(isFavoritedByCurrentUser(article, finalCurrentUser));
-            try {
-                articleDto.setAuthor(
-                    profileService.getProfileByUsername(article.getAuthor().getUsername()));
-            } catch (NotFoundResponseException ignore) {
-            }
-
-            return articleDto;
-        }).toList();
+        var results = articles.stream().map(article -> mapArticleWithAuthor(finalCurrentUser, article)).toList();
 
         return Pair.of(results, articles.getTotalElements());
     }
 
     @Override
-    public List<ArticleDto> getArticlesFeed(PaginationParamDto params) {
-        return null;
+    public Pair<List<ArticleDto>, Long> getArticlesFeed(PaginationParamDto params) {
+        var currentUser = AuthUtil.getCurrentUser();
+        var articles = articleRepository.findAllByFollowedUsers(currentUser.getId(), PageRequest.of(
+            params.getOffset(), params.getLimit(), Sort.by("createdAt").descending()));
+
+        var results = articles.stream().map(article -> mapArticleWithAuthor(currentUser, article)).toList();
+
+        return Pair.of(results, articles.getTotalElements());
     }
 
     @Override
-    public ArticleDto getArticle(String slug) {
-        return null;
+    @Transactional
+    public ArticleDto getArticle(String slug) throws NotFoundResponseException {
+        var currentUser = AuthUtil.getCurrentUser();
+        if (currentUser != null) {
+            currentUser = applicationUserRepository.findById(currentUser.getId()).orElseThrow(null);
+        }
+
+        var article = articleRepository.findBySlug(slug).orElseThrow(
+            () -> new NotFoundResponseException("Article not found"));
+
+        return mapArticleWithAuthor(currentUser, article);
     }
 
     @Override
@@ -96,20 +102,38 @@ public class ArticleServiceImpl implements ArticleService {
         var resultDto = articleMapper.entityToDto(article);
 
         try {
-            resultDto.setAuthor(profileService.getProfileByUsername(article.getAuthor().getUsername()));
-        } catch (NotFoundResponseException ignored) {}
+            resultDto.setAuthor(
+                profileService.getProfileByUsername(article.getAuthor().getUsername()));
+        } catch (NotFoundResponseException ignored) {
+        }
 
         return resultDto;
     }
 
     @Override
-    public ArticleDto updateArticle(String slug, UpdateArticleDto articleDto) {
-        return null;
+    @Transactional
+    public ArticleDto updateArticle(String slug, UpdateArticleDto articleDto)
+        throws NotFoundResponseException {
+        var article = articleRepository.findBySlug(slug).orElseThrow(
+            () -> new NotFoundResponseException("Article not found"));
+
+        article = articleMapper.updateDtoToEntity(articleDto, article);
+        article = articleRepository.save(article);
+        article.setUpdatedAt(LocalDateTime.now());
+        var resultDto = articleMapper.entityToDto(article);
+
+        try {
+            resultDto.setAuthor(
+                profileService.getProfileByUsername(article.getAuthor().getUsername()));
+        } catch (NotFoundResponseException ignored) {
+        }
+
+        return resultDto;
     }
 
     @Override
     public void deleteArticle(String slug) {
-
+        articleRepository.deleteBySlug(slug);
     }
 
     @Override
@@ -143,6 +167,19 @@ public class ArticleServiceImpl implements ArticleService {
         }
         return article.getFavoritedBy().stream()
             .anyMatch(user -> user.getId().equals(currentUser.getId()));
+    }
+
+    private ArticleDto mapArticleWithAuthor(ApplicationUser currentUser, Article article) {
+        var articleDto = articleMapper.entityToDto(article);
+
+        articleDto.setFavorited(isFavoritedByCurrentUser(article, currentUser));
+        try {
+            articleDto.setAuthor(
+                profileService.getProfileByUsername(article.getAuthor().getUsername()));
+        } catch (NotFoundResponseException ignore) {
+        }
+
+        return articleDto;
     }
 
 }

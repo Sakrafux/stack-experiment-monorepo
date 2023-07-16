@@ -2,6 +2,7 @@ package com.sakrafux.sem.realworld.mapper;
 
 import com.sakrafux.sem.realworld.dto.ArticleDto;
 import com.sakrafux.sem.realworld.dto.NewArticleDto;
+import com.sakrafux.sem.realworld.dto.UpdateArticleDto;
 import com.sakrafux.sem.realworld.entity.ApplicationUser;
 import com.sakrafux.sem.realworld.entity.Article;
 import com.sakrafux.sem.realworld.entity.Tag;
@@ -9,9 +10,11 @@ import java.util.Comparator;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper
+@Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ArticleMapper {
 
     @Mapping(target = "tagList", source = "tags", qualifiedByName = "tagsToStrings")
@@ -21,6 +24,8 @@ public interface ArticleMapper {
 
     @Mapping(target = "slug", source = "title", qualifiedByName = "titleToSlug")
     Article newDtoToEntity(NewArticleDto articleDto);
+
+    Article updateDtoToEntity(UpdateArticleDto articleDto, @MappingTarget Article article);
 
     @Named("tagsToStrings")
     default List<String> tagsToStrings(List<Tag> tags) {
