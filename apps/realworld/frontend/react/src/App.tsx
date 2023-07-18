@@ -1,5 +1,7 @@
+import AxiosInterceptors from 'api/AxiosInterceptors';
+import { DataContexts } from 'data';
 import { BrowserRouter } from 'react-router-dom';
-import { Header } from './components';
+import { Footer, Header } from './components';
 import { Contexts } from './context';
 import Routes from './routes';
 
@@ -7,8 +9,13 @@ const App = () => {
   return (
     <BrowserRouter>
       <Contexts>
-        <Header />
-        <Routes />
+        <DataContexts>
+          <AxiosInterceptors>
+            <Header />
+            <Routes />
+            <Footer />
+          </AxiosInterceptors>
+        </DataContexts>
       </Contexts>
     </BrowserRouter>
   );

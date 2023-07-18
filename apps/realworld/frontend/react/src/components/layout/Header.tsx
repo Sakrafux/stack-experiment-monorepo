@@ -34,7 +34,7 @@ const Header = () => {
               </li>
               <li className="nav-item">
                 <Link to={`/profile/${user.username}`} className="nav-link">
-                  <img src={user.image} alt="profile" className="user-pic" />
+                  {user.image && <img src={user.image} alt="profile" className="user-pic" />}
                   {user.username}
                 </Link>
               </li>

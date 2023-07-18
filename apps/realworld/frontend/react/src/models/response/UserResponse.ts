@@ -1,5 +1,5 @@
-import { User } from '../User';
+import { UserDto } from '../UserDto';
 
 export type UserResponse = {
-  user: User;
+  user: UserDto;
 };

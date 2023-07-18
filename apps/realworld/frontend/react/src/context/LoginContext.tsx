@@ -1,8 +1,8 @@
 import jwtDecode from 'jwt-decode';
+import { UserDto } from 'models';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { User } from '../models';
 
-export type LoginContextState = User | undefined;
+export type LoginContextState = UserDto | undefined;
 
 export type LoginContextType = {
   state: LoginContextState;
@@ -25,7 +25,7 @@ export const useLoginContext = () => {
 };
 
 export type LoginContextProviderProps = {
-  defaultState?: User;
+  defaultState?: UserDto;
   children: React.ReactNode;
 };
 
@@ -43,10 +43,10 @@ export const LoginContextProvider = ({ defaultState, children }: LoginContextPro
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (user) {
-      const parsedUser = JSON.parse(user) as User;
+      const parsedUser = JSON.parse(user) as UserDto;
       const decodedToken = jwtDecode<{ exp: number; rol: string[]; sub: string }>(parsedUser.token);
 
-      if (new Date(decodedToken.exp * 1000) < new Date()) {
+      if (new Date(decodedToken.exp * 1000) > new Date()) {
         dispatch(JSON.parse(user));
       } else {
         localStorage.removeItem('user');

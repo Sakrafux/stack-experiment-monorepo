@@ -1,7 +1,6 @@
-export type User = {
-  email: string;
-  token: string;
+export type ProfileDto = {
   username: string;
   bio: string;
   image: string;
+  following: boolean;
 };

@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 public interface ProfileMapper {
 
     @Mapping(source = "following", target = "following")
+    @Mapping(source = "user.image", target = "image", defaultValue = "")
     ProfileDto entityToDto(ApplicationUser user, boolean following);
 
 }

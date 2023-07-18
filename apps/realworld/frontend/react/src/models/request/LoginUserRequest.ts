@@ -1,5 +1,5 @@
-import { LoginUser } from '../LoginUser';
+import { LoginUserDto } from '../LoginUserDto';
 
 export type LoginUserRequest = {
-  user: LoginUser;
+  user: LoginUserDto;
 };
