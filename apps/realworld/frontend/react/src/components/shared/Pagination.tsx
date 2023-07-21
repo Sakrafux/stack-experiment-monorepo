@@ -5,6 +5,8 @@ export type PaginationProps = {
 };
 
 const Pagination = ({ page, totalPages, onPageChange }: PaginationProps) => {
+  if (totalPages === 1) return null;
+
   return (
     <nav>
       <ul className="pagination">

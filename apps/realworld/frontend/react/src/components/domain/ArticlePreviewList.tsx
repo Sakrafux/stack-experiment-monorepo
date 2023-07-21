@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import ArticlePreview from './ArticlePreview';
 
 export type ArticlePreviewListProps = {
-  articlePages: ArticlePages;
+  articlePages: ArticlePages | undefined;
   pageSize: number;
   getArticlesForPage: (page: number) => Promise<void>;
 };
@@ -12,7 +12,7 @@ export type ArticlePreviewListProps = {
 const ArticlePreviewList = ({ articlePages, pageSize, getArticlesForPage }: ArticlePreviewListProps) => {
   const [page, setPage] = useState(0);
   const [activePage, setActivePage] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
@@ -22,7 +22,11 @@ const ArticlePreviewList = ({ articlePages, pageSize, getArticlesForPage }: Arti
     });
   }, [getArticlesForPage, page]);
 
-  if (articlePages.articlesCount === 0) return <div className="article-preview">No articles are here... yet.</div>;
+  if (!articlePages) return <div className="article-preview">Loading articles...</div>;
+
+  if (articlePages.articlesCount === 0) {
+    return <div className="article-preview">No articles are here... yet.</div>;
+  }
 
   return (
     <>

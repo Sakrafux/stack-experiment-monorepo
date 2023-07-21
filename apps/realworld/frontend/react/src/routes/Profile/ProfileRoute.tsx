@@ -18,9 +18,7 @@ const ProfileRoute = () => {
     }
   }, [navigate, profile, username]);
 
-  if (!profile) return <div>Loading...</div>;
-
-  return <Profile profile={profile} />;
+  return <Profile profile={profile ?? { image: '', username: '', following: false, bio: '' }} />;
 };
 
 export default ProfileRoute;

@@ -22,3 +22,15 @@ export const getArticles = async (params: GetArticlesParams): Promise<MultipleAr
 
   return result.data;
 };
+
+export const getArticlesFeed = async (params: PaginationParams): Promise<MultipleArticlesResponse> => {
+  const result = await api.get<MultipleArticlesResponse, AxiosResponse<MultipleArticlesResponse>>('/articles/feed', {
+    params,
+  });
+
+  result.data.articles.forEach(
+    article => (article.author.image = article.author.image || 'https://api.realworld.io/images/demo-avatar.png')
+  );
+
+  return result.data;
+};

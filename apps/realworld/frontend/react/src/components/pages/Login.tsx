@@ -1,23 +1,19 @@
 import { login } from 'api';
 import { useLoginContext } from 'context';
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-const Login = () => {
+export type LoginProps = {
+  onSuccessfulLogin: () => void;
+};
+
+const Login = ({ onSuccessfulLogin }: LoginProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const { dispatch } = useLoginContext();
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const onSuccessfulLogin = async () => {
-    const comesFromLogin = location.state?.location === '/login';
-    navigate(comesFromLogin ? '/' : location.state.location || '/');
-  };
 
   const onClickSignIn = async () => {
     setIsLoading(true);

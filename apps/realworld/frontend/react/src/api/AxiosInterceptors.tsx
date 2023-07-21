@@ -1,29 +1,38 @@
 import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { convertIsoDatesToDates } from 'utils';
+import { convertIsoDatesToDates, getToken } from 'utils';
 import { api } from './axios';
+import { useLoginContext } from 'context';
 
 export type AxiosInterceptorsProps = { children: ReactNode };
 
+api.interceptors.response.use(response => {
+  convertIsoDatesToDates(response.data);
+  return response;
+});
+
 const AxiosInterceptors = ({ children }: AxiosInterceptorsProps) => {
+  const { user } = useLoginContext().state;
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.interceptors.response.use(
-      response => {
-        convertIsoDatesToDates(response.data);
-        return response;
-      },
-      error => {
-        if (error.response?.status === 401) {
-          navigate('/login');
-        }
-
-        return Promise.reject(error);
+    api.interceptors.request.use(config => {
+      const token = !user ? getToken() : user.token;
+      if (token) {
+        config.headers.Authorization = `Token ${token}`;
       }
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      return config;
+    });
+
+    api.interceptors.response.use(undefined, error => {
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
+
+      return Promise.reject(error);
+    });
+  }, [navigate, user]);
 
   // eslint-disable-next-line react/jsx-no-useless-fragment
   return <>{children}</>;

@@ -3,14 +3,15 @@ import LoginRoute from './LoginRoute';
 import ProfileArticlesRoute from './Profile/ProfileArticlesRoute';
 import ProfileRoute from './Profile/ProfileRoute';
 import SettingsRoute from './SettingsRoute';
-import { Register } from 'components';
+import RegisterRoute from './RegisterRoute';
+import HomeRoute from './HomeRoute';
 
 const Routes = () => {
   return (
     <RouteSwitch>
-      <Route path="/" element={<div>Home</div>} />
+      <Route path="/" element={<HomeRoute />} />
       <Route path="/login" element={<LoginRoute />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/register" element={<RegisterRoute />} />
       <Route path="/settings" element={<SettingsRoute />} />
       <Route path="/profile/:username" element={<ProfileRoute />}>
         <Route index element={<ProfileArticlesRoute key="articles" />} />

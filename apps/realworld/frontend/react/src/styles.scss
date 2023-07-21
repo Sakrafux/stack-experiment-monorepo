@@ -2,3 +2,15 @@
 // @tailwind base;
 // @tailwind components;
 // @tailwind utilities;
+
+button.tag-default {
+  border-style: none;
+}
+
+.tag-default:hover {
+  background-color: #687077;
+}
+
+.nav-link {
+  cursor: pointer;
+}
