@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 const Settings = () => {
   const [value, setValue] = useState<UpdateUserDto>({ username: '', email: '', bio: '', image: '', password: '' });
 
-  const user = useLoginContext().state;
+  const { user } = useLoginContext().state;
 
   const logout = useLogout();
 
@@ -16,8 +16,7 @@ const Settings = () => {
       const { username, email, bio, image } = user;
       setValue({ username, email, bio, image, password: '' });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   return (
     <div className="settings-page">
@@ -51,7 +50,7 @@ const Settings = () => {
                     className="form-control form-control-lg"
                     rows={8}
                     placeholder="Short bio about you"
-                    value={value.bio}
+                    value={value.bio ?? ''}
                     onChange={e => setValue({ ...value, bio: e.target.value })}
                   ></textarea>
                 </fieldset>

@@ -2,7 +2,10 @@ import jwtDecode from 'jwt-decode';
 import { UserDto } from 'models';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-export type LoginContextState = UserDto | undefined;
+export type LoginContextState = {
+  user?: UserDto;
+  isLoading: boolean;
+};
 
 export type LoginContextType = {
   state: LoginContextState;
@@ -10,7 +13,7 @@ export type LoginContextType = {
 };
 
 const LoginContext = createContext<LoginContextType>({
-  state: undefined,
+  state: { isLoading: true },
   dispatch: () => {
     throw new Error('dispatch function must be overridden');
   },
@@ -25,20 +28,20 @@ export const useLoginContext = () => {
 };
 
 export type LoginContextProviderProps = {
-  defaultState?: UserDto;
+  defaultState?: LoginContextState;
   children: React.ReactNode;
 };
 
 export const LoginContextProvider = ({ defaultState, children }: LoginContextProviderProps) => {
-  const [state, dispatch] = useState<LoginContextState>(defaultState);
+  const [state, dispatch] = useState<LoginContextState>(defaultState ?? { isLoading: true });
 
   const value = useMemo(() => ({ state, dispatch }), [state]);
 
   useEffect(() => {
-    if (state) {
-      localStorage.setItem('user', JSON.stringify(state));
+    if (state.user) {
+      localStorage.setItem('user', JSON.stringify(state.user));
     }
-  }, [state]);
+  }, [state.user]);
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -47,10 +50,12 @@ export const LoginContextProvider = ({ defaultState, children }: LoginContextPro
       const decodedToken = jwtDecode<{ exp: number; rol: string[]; sub: string }>(parsedUser.token);
 
       if (new Date(decodedToken.exp * 1000) > new Date()) {
-        dispatch(JSON.parse(user));
+        dispatch({ user: parsedUser, isLoading: false });
       } else {
         localStorage.removeItem('user');
       }
+    } else {
+      dispatch({ isLoading: false });
     }
   }, []);
 

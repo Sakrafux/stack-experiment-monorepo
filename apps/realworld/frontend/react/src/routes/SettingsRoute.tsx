@@ -4,16 +4,15 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const SettingsRoute = () => {
-  const user = useLoginContext();
+  const user = useLoginContext().state;
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
+    if (!user.isLoading && !user.user) {
       navigate('/login');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [navigate, user]);
 
   return <Settings />;
 };

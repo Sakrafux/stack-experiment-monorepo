@@ -9,7 +9,7 @@ const useLogout = () => {
 
   const logout = useCallback(() => {
     localStorage.removeItem('user');
-    dispatch(undefined);
+    dispatch({ user: undefined, isLoading: false });
     navigate('/');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

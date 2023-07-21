@@ -24,7 +24,7 @@ const Login = () => {
     try {
       const result = await login(email, password);
 
-      dispatch(result);
+      dispatch({ user: result, isLoading: false });
 
       onSuccessfulLogin();
     } catch (error) {

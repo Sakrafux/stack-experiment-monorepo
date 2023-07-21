@@ -2,7 +2,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLoginContext } from 'context';
 
 const Header = () => {
-  const { state: user } = useLoginContext();
+  const {
+    state: { user },
+  } = useLoginContext();
 
   const location = useLocation().pathname;
 

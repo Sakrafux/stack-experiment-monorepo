@@ -7,7 +7,7 @@ export type ProfileProps = {
 };
 
 const Profile = ({ profile }: ProfileProps) => {
-  const currentUsername = useLoginContext().state?.username;
+  const currentUsername = useLoginContext().state?.user?.username;
 
   const location = useLocation().pathname;
   const subPath = location.split('/').at(-1);
