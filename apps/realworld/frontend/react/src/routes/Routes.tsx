@@ -2,6 +2,7 @@ import { Navigate, Route, Routes as RouteSwitch } from 'react-router-dom';
 import LoginRoute from './LoginRoute';
 import ProfileArticlesRoute from './Profile/ProfileArticlesRoute';
 import ProfileRoute from './Profile/ProfileRoute';
+import SettingsRoute from './SettingsRoute';
 
 const Routes = () => {
   return (
@@ -12,6 +13,7 @@ const Routes = () => {
         <Route index element={<ProfileArticlesRoute key="articles" />} />
         <Route path="favorites" element={<ProfileArticlesRoute favorites key="favorites" />} />
       </Route>
+      <Route path="/settings" element={<SettingsRoute />} />
       <Route path="*" element={<Navigate to="/" />} />
     </RouteSwitch>
   );

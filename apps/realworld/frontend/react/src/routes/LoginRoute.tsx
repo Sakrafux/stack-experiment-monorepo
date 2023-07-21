@@ -1,16 +1,21 @@
 import { Login } from 'components';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLoginContext } from 'context';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginRoute = () => {
-  const location = useLocation();
+  const user = useLoginContext().state;
+
   const navigate = useNavigate();
 
-  const onSuccessfulLogin = async () => {
-    const comesFromLogin = location.state?.location === '/login';
-    navigate(comesFromLogin ? '/' : location.state.location || '/');
-  };
+  useEffect(() => {
+    if (user) {
+      console.log('user', user);
+      navigate('/');
+    }
+  }, [navigate, user]);
 
-  return <Login onSuccessfulLogin={onSuccessfulLogin} />;
+  return <Login />;
 };
 
 export default LoginRoute;

@@ -1,4 +1,4 @@
-export * from './actions/LoginActions';
+export * from './actions/UserActions';
 export * from './actions/ProfilesActions';
 export * from './axios';
 export * from './AxiosInterceptors';
