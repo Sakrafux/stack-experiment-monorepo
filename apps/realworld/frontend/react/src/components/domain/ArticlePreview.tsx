@@ -1,15 +1,24 @@
+import { useLoginContext } from 'context';
 import { createArticleFavorite, deleteArticleFavorite, useArticle } from 'data';
 import { ArticleDto } from 'models';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export type ArticlePreviewProps = {
   article: ArticleDto;
 };
 
 const ArticlePreview = ({ article }: ArticlePreviewProps) => {
+  const { user } = useLoginContext().state;
+
   const { replaceArticle } = useArticle();
+  const navigate = useNavigate();
 
   const onClickFavorite = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (article.favorited) {
       deleteArticleFavorite(article.slug).then(result => replaceArticle(article.slug, result.article));
     } else {

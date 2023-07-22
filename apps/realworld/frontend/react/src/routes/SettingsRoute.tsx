@@ -10,7 +10,7 @@ const SettingsRoute = () => {
 
   useEffect(() => {
     if (!user.isLoading && !user.user) {
-      navigate('/login');
+      navigate('/login', { state: { location: '/settings' } });
     }
   }, [navigate, user]);
 

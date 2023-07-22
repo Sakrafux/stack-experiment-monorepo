@@ -1,7 +1,7 @@
 import { followUserByUsername, unfollowUserByUsername } from 'api';
 import { useLoginContext } from 'context';
 import { ProfileDto } from 'models';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export type ProfileProps = {
   profile: ProfileDto;
@@ -9,14 +9,21 @@ export type ProfileProps = {
 };
 
 const Profile = ({ profile, setProfile }: ProfileProps) => {
-  const currentUsername = useLoginContext().state?.user?.username;
+  const { user } = useLoginContext().state;
+  const currentUsername = user?.username;
 
+  const navigate = useNavigate();
   const location = useLocation().pathname;
   const subPath = location.split('/').at(-1);
 
   const isCurrentUser = currentUsername === profile.username;
 
   const onClickFollow = () => {
+    if (!user) {
+      navigate('/login', { state: { location } });
+      return;
+    }
+
     if (profile.following) {
       unfollowUserByUsername(profile.username).then(profile => setProfile(profile));
     } else {
