@@ -20,7 +20,7 @@ const AxiosInterceptors = ({ children }: AxiosInterceptorsProps) => {
     api.interceptors.request.use(config => {
       const token = !user ? getToken() : user.token;
       if (token) {
-        config.headers.Authorization = `Token ${token}`;
+        config.headers.Authorization = token;
       }
       return config;
     });

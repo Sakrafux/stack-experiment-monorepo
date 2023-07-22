@@ -37,7 +37,7 @@ const Header = () => {
               <li className="nav-item">
                 <Link
                   to={`/profile/${user.username}`}
-                  className={`nav-link ${location === `/profile/${user.username}` ? 'active' : ''}`}
+                  className={`nav-link ${location.startsWith(`/profile/${user.username}`) ? 'active' : ''}`}
                 >
                   {user.image && <img src={user.image} alt="profile" className="user-pic" />}
                   {user.username}

@@ -1,18 +1,19 @@
-import { useArticleContext } from '../state';
+import { ArticlePages, useArticleContext } from '../state';
 import { getArticles, getArticlesFeed } from '../action';
 import { useCallback, useRef } from 'react';
 import { environment } from 'environments/environment';
 import { useLoginContext } from 'context';
+import { ArticleDto } from 'models';
 
 const useArticle = () => {
   const ongoingRequests = useRef<Record<string, Record<number, boolean>>>({ globalFeed: {}, myFeed: {} });
 
   const { state: articles, dispatch: setArticles } = useArticleContext();
-  const { user } = useLoginContext().state;
+  const { user, isLoading } = useLoginContext().state;
 
   const getGlobalFeed = useCallback(
     async (page: number) => {
-      if (articles.globalFeed?.articles[page] || ongoingRequests.current['globalFeed'][page]) return;
+      if (isLoading || articles.globalFeed?.articles[page] || ongoingRequests.current['globalFeed'][page]) return;
 
       ongoingRequests.current['globalFeed'][page] = true;
       return getArticles({ limit: environment.pageSizes.home, offset: page }).then(({ articles, articlesCount }) => {
@@ -27,7 +28,7 @@ const useArticle = () => {
         });
       });
     },
-    [articles?.globalFeed, setArticles]
+    [articles.globalFeed?.articles, isLoading, setArticles]
   );
 
   const getMyFeed = useCallback(
@@ -75,7 +76,51 @@ const useArticle = () => {
     [articles.taggedArticles, setArticles]
   );
 
-  return { getGlobalFeed, getMyFeed, getTaggedFeed };
+  const replaceArticle = useCallback((slug: string, article: ArticleDto) => {
+    setArticles({
+      type: 'setAll',
+      setAction: stateSlice => ({
+        myFeed: stateSlice.myFeed && replaceArticleInSlice(stateSlice.myFeed, slug, article),
+        globalFeed: stateSlice.globalFeed && replaceArticleInSlice(stateSlice.globalFeed, slug, article),
+        taggedArticles: Object.fromEntries(
+          Object.entries(stateSlice.taggedArticles).map(([tag, slice]) => [
+            tag,
+            replaceArticleInSlice(slice, slug, article),
+          ])
+        ),
+        userArticles: Object.fromEntries(
+          Object.entries(stateSlice.userArticles).map(([username, slice]) => [
+            username,
+            replaceArticleInSlice(slice, slug, article),
+          ])
+        ),
+        favoritedArticles: Object.fromEntries(
+          Object.entries(stateSlice.favoritedArticles).map(([username, slice]) => [
+            username,
+            replaceArticleInSlice(slice, slug, article),
+          ])
+        ),
+      }),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return { getGlobalFeed, getMyFeed, getTaggedFeed, replaceArticle };
+};
+
+const replaceArticleInSlice = (slice: ArticlePages, slug: string, article: ArticleDto): ArticlePages => {
+  return {
+    articles: Object.fromEntries(
+      Object.entries(slice.articles).map(([page, articles]) => {
+        const index = articles.findIndex(a => a.slug === slug);
+        if (index > -1) {
+          articles[index] = article;
+        }
+        return [page, [...articles]];
+      })
+    ),
+    articlesCount: slice.articlesCount,
+  };
 };
 
 export default useArticle;

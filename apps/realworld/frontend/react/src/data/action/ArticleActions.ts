@@ -1,6 +1,6 @@
 import { api } from 'api';
 import { AxiosResponse } from 'axios';
-import { MultipleArticlesResponse, PaginationParams } from 'models';
+import { MultipleArticlesResponse, PaginationParams, SingleArticleResponse } from 'models';
 
 export type GetArticlesParams = PaginationParams & {
   tag?: string;
@@ -31,6 +31,28 @@ export const getArticlesFeed = async (params: PaginationParams): Promise<Multipl
   result.data.articles.forEach(
     article => (article.author.image = article.author.image || 'https://api.realworld.io/images/demo-avatar.png')
   );
+
+  return result.data;
+};
+
+export const createArticleFavorite = async (slug: string): Promise<SingleArticleResponse> => {
+  const result = await api.post<SingleArticleResponse, AxiosResponse<SingleArticleResponse>>(
+    `/articles/${slug}/favorite`
+  );
+
+  result.data.article.author.image =
+    result.data.article.author.image || 'https://api.realworld.io/images/demo-avatar.png';
+
+  return result.data;
+};
+
+export const deleteArticleFavorite = async (slug: string): Promise<SingleArticleResponse> => {
+  const result = await api.delete<SingleArticleResponse, AxiosResponse<SingleArticleResponse>>(
+    `/articles/${slug}/favorite`
+  );
+
+  result.data.article.author.image =
+    result.data.article.author.image || 'https://api.realworld.io/images/demo-avatar.png';
 
   return result.data;
 };

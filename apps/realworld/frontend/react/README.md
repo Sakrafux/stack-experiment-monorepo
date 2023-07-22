@@ -27,4 +27,4 @@ For more information on how to this works with other frontends/backends, head ov
 
 ### Experience Level (Framework): 5/5
 
-### Time to Complete: 7h
+### Time to Complete: 8h

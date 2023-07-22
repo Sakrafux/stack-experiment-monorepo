@@ -1,3 +1,4 @@
+import { createArticleFavorite, deleteArticleFavorite, useArticle } from 'data';
 import { ArticleDto } from 'models';
 import { Link } from 'react-router-dom';
 
@@ -6,7 +7,15 @@ export type ArticlePreviewProps = {
 };
 
 const ArticlePreview = ({ article }: ArticlePreviewProps) => {
-  const onClickFavorite = () => {};
+  const { replaceArticle } = useArticle();
+
+  const onClickFavorite = () => {
+    if (article.favorited) {
+      deleteArticleFavorite(article.slug).then(result => replaceArticle(article.slug, result.article));
+    } else {
+      createArticleFavorite(article.slug).then(result => replaceArticle(article.slug, result.article));
+    }
+  };
 
   return (
     <div className="article-preview">
@@ -20,7 +29,10 @@ const ArticlePreview = ({ article }: ArticlePreviewProps) => {
           </Link>
           <span className="date">{article.createdAt.toLocaleDateString()}</span>
         </div>
-        <button className="btn btn-outline-primary btn-sm pull-xs-right" onClick={onClickFavorite}>
+        <button
+          className={`btn btn-outline-primary btn-sm pull-xs-right ${article.favorited ? 'active' : ''}`}
+          onClick={onClickFavorite}
+        >
           <i className="ion-heart"></i> {article.favoritesCount}
         </button>
       </div>

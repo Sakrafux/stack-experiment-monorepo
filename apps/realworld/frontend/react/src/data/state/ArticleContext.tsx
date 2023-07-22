@@ -30,6 +30,10 @@ export type ArticleContextAction =
   | {
       type: 'setTaggedArticles' | 'setUserArticles' | 'setFavoritedArticles';
       setAction: (stateSlice: Record<string, ArticlePages>) => Record<string, ArticlePages>;
+    }
+  | {
+      type: 'setAll';
+      setAction: (stateSlice: ArticleContextState) => ArticleContextState;
     };
 
 const articleReducer = (state: ArticleContextState, action: ArticleContextAction): ArticleContextState => {
@@ -45,6 +49,8 @@ const articleReducer = (state: ArticleContextState, action: ArticleContextAction
       return { ...state, userArticles: setAction(state.userArticles) };
     case 'setFavoritedArticles':
       return { ...state, favoritedArticles: setAction(state.favoritedArticles) };
+    case 'setAll':
+      return setAction(state);
     default:
       throw new Error(`Unhandled action type: ${type}`);
   }

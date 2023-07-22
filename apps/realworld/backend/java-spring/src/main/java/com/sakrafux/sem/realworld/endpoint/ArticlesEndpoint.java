@@ -8,7 +8,6 @@ import com.sakrafux.sem.realworld.dto.response.MultipleArticlesResponseDto;
 import com.sakrafux.sem.realworld.dto.response.MultipleCommentsResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleArticleResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleCommentResponseDto;
-import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
 import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import com.sakrafux.sem.realworld.service.ArticleService;
 import jakarta.validation.Valid;
@@ -48,8 +47,8 @@ public class ArticlesEndpoint {
                                                    @RequestParam(required = false) String tag,
                                                    @RequestParam(required = false) String author,
                                                    @RequestParam(required = false)
-                                                       String favoritedBy) {
-        var articles = articleService.getArticles(params, tag, author, favoritedBy);
+                                                       String favorited) {
+        var articles = articleService.getArticles(params, tag, author, favorited);
         return new MultipleArticlesResponseDto(articles.getSecond().intValue(),
             articles.getFirst());
     }
