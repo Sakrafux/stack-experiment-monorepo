@@ -18,7 +18,9 @@ const ProfileRoute = () => {
     }
   }, [navigate, profile, username]);
 
-  return <Profile profile={profile ?? { image: '', username: '', following: false, bio: '' }} />;
+  return (
+    <Profile profile={profile ?? { image: '', username: '', following: false, bio: '' }} setProfile={setProfile} />
+  );
 };
 
 export default ProfileRoute;

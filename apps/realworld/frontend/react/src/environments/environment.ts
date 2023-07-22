@@ -8,7 +8,7 @@ export const environment = {
     profile: 5,
   },
   api: {
-    // url: 'http://localhost:8080/api',
-    url: 'https://api.realworld.io/api',
+    url: 'http://localhost:8080/api',
+    // url: 'https://api.realworld.io/api',
   },
 };

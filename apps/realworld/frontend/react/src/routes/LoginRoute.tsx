@@ -11,7 +11,7 @@ const LoginRoute = () => {
 
   const onSuccessfulLogin = async () => {
     const comesFromLogin = location.state?.location === '/login';
-    navigate(comesFromLogin ? '/' : location.state.location || '/');
+    navigate(comesFromLogin ? '/' : location.state?.location || '/');
   };
 
   useEffect(() => {

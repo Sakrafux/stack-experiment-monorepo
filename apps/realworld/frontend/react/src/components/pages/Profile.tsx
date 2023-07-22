@@ -1,12 +1,14 @@
+import { followUserByUsername, unfollowUserByUsername } from 'api';
 import { useLoginContext } from 'context';
 import { ProfileDto } from 'models';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 export type ProfileProps = {
   profile: ProfileDto;
+  setProfile: React.Dispatch<React.SetStateAction<ProfileDto | undefined>>;
 };
 
-const Profile = ({ profile }: ProfileProps) => {
+const Profile = ({ profile, setProfile }: ProfileProps) => {
   const currentUsername = useLoginContext().state?.user?.username;
 
   const location = useLocation().pathname;
@@ -14,7 +16,13 @@ const Profile = ({ profile }: ProfileProps) => {
 
   const isCurrentUser = currentUsername === profile.username;
 
-  const onClickFollow = () => {};
+  const onClickFollow = () => {
+    if (profile.following) {
+      unfollowUserByUsername(profile.username).then(profile => setProfile(profile));
+    } else {
+      followUserByUsername(profile.username).then(profile => setProfile(profile));
+    }
+  };
 
   return (
     <div className="profile-page">
@@ -27,8 +35,17 @@ const Profile = ({ profile }: ProfileProps) => {
               {profile.bio && <p>{profile.bio}</p>}
               {!isCurrentUser && (
                 <button className="btn btn-sm btn-outline-secondary action-btn" onClick={onClickFollow}>
-                  <i className="ion-plus-round"></i>
-                  &nbsp; Follow {profile.username}
+                  {profile.following ? (
+                    <>
+                      <i className="ion-minus-round"></i>
+                      &nbsp; Unfollow {profile.username}
+                    </>
+                  ) : (
+                    <>
+                      <i className="ion-plus-round"></i>
+                      &nbsp; Follow {profile.username}
+                    </>
+                  )}
                 </button>
               )}
             </div>

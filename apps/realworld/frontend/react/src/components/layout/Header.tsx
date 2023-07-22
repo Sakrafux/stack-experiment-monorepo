@@ -23,19 +23,22 @@ const Header = () => {
           {user ? (
             <>
               <li className="nav-item">
-                <Link to="/editor" className="nav-link">
+                <Link to="/editor" className={`nav-link ${location === '/editor' ? 'active' : ''}`}>
                   {' '}
                   <i className="ion-compose"></i>&nbsp;New Article{' '}
                 </Link>
               </li>
               <li className="nav-item">
-                <Link to="/settings" className="nav-link">
+                <Link to="/settings" className={`nav-link ${location === '/settings' ? 'active' : ''}`}>
                   {' '}
                   <i className="ion-gear-a"></i>&nbsp;Settings{' '}
                 </Link>
               </li>
               <li className="nav-item">
-                <Link to={`/profile/${user.username}`} className="nav-link">
+                <Link
+                  to={`/profile/${user.username}`}
+                  className={`nav-link ${location === `/profile/${user.username}` ? 'active' : ''}`}
+                >
                   {user.image && <img src={user.image} alt="profile" className="user-pic" />}
                   {user.username}
                 </Link>
