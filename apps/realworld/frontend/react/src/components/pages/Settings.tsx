@@ -32,7 +32,7 @@ const Settings = () => {
                     className="form-control"
                     type="text"
                     placeholder="URL of profile picture"
-                    value={value.image}
+                    value={value.image ?? ''}
                     onChange={e => setValue({ ...value, image: e.target.value })}
                   />
                 </fieldset>
@@ -41,7 +41,7 @@ const Settings = () => {
                     className="form-control form-control-lg"
                     type="text"
                     placeholder="Your Name"
-                    value={value.username}
+                    value={value.username ?? ''}
                     onChange={e => setValue({ ...value, username: e.target.value })}
                   />
                 </fieldset>
@@ -59,7 +59,7 @@ const Settings = () => {
                     className="form-control form-control-lg"
                     type="text"
                     placeholder="Email"
-                    value={value.email}
+                    value={value.email ?? ''}
                     onChange={e => setValue({ ...value, email: e.target.value })}
                   />
                 </fieldset>
@@ -68,7 +68,7 @@ const Settings = () => {
                     className="form-control form-control-lg"
                     type="password"
                     placeholder="Password"
-                    value={value.password}
+                    value={value.password ?? ''}
                     onChange={e => setValue({ ...value, password: e.target.value })}
                   />
                 </fieldset>

@@ -5,6 +5,7 @@ import ProfileRoute from './Profile/ProfileRoute';
 import SettingsRoute from './SettingsRoute';
 import RegisterRoute from './RegisterRoute';
 import HomeRoute from './HomeRoute';
+import ArticleRoute from './ArticleRoute';
 
 const Routes = () => {
   return (
@@ -17,6 +18,7 @@ const Routes = () => {
         <Route index element={<ProfileArticlesRoute key="articles" />} />
         <Route path="favorites" element={<ProfileArticlesRoute favorites key="favorites" />} />
       </Route>
+      <Route path="/article/:slug" element={<ArticleRoute />} />
       <Route path="*" element={<Navigate to="/" />} />
     </RouteSwitch>
   );

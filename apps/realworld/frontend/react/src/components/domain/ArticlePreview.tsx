@@ -46,7 +46,7 @@ const ArticlePreview = ({ article }: ArticlePreviewProps) => {
           <i className="ion-heart"></i> {article.favoritesCount}
         </button>
       </div>
-      <Link to={`/article/${article.slug}`} className="preview-link">
+      <Link to={`/article/${article.slug}`} className="preview-link" state={{ article }}>
         <h1>{article.title}</h1>
         <p>{article.description}</p>
         <span>Read more...</span>

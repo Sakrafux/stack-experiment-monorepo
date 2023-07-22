@@ -56,3 +56,12 @@ export const deleteArticleFavorite = async (slug: string): Promise<SingleArticle
 
   return result.data;
 };
+
+export const getArticle = async (slug: string): Promise<SingleArticleResponse> => {
+  const result = await api.get<SingleArticleResponse, AxiosResponse<SingleArticleResponse>>(`/articles/${slug}`);
+
+  result.data.article.author.image =
+    result.data.article.author.image || 'https://api.realworld.io/images/demo-avatar.png';
+
+  return result.data;
+};
