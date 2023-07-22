@@ -1,7 +1,7 @@
 import { useLoginContext } from 'context';
 import { createArticleFavorite, deleteArticleFavorite, useArticle } from 'data';
 import { ArticleDto } from 'models';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export type ArticlePreviewProps = {
   article: ArticleDto;
@@ -12,10 +12,11 @@ const ArticlePreview = ({ article }: ArticlePreviewProps) => {
 
   const { replaceArticle } = useArticle();
   const navigate = useNavigate();
+  const location = useLocation().pathname;
 
   const onClickFavorite = () => {
     if (!user) {
-      navigate('/login');
+      navigate('/login', { state: { location } });
       return;
     }
 
