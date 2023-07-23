@@ -21,6 +21,10 @@ const HomeRoute = () => {
     getMyFeed(0);
   }, [getMyFeed]);
 
+  useEffect(() => {
+    document.title = 'Home — Conduit';
+  }, []);
+
   return <Home />;
 };
 

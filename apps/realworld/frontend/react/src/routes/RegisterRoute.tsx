@@ -14,6 +14,10 @@ const RegisterRoute = () => {
     }
   }, [navigate, user]);
 
+  useEffect(() => {
+    document.title = 'Sign up — Conduit';
+  }, []);
+
   return <Register />;
 };
 

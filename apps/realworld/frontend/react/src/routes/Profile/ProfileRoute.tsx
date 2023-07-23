@@ -18,6 +18,10 @@ const ProfileRoute = () => {
     }
   }, [navigate, profile, username]);
 
+  useEffect(() => {
+    document.title = `${profile?.username ?? 'Profile'} — Conduit`;
+  }, [profile?.username]);
+
   return (
     <Profile profile={profile ?? { image: '', username: '', following: false, bio: '' }} setProfile={setProfile} />
   );

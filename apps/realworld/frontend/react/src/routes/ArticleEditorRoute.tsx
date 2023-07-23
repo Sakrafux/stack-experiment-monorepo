@@ -31,6 +31,10 @@ const ArticleEditorRoute = () => {
     }
   }, [articleFromRoute, slug]);
 
+  useEffect(() => {
+    document.title = `${article?.title ? 'Edit' : 'New'} Article — Conduit`;
+  }, [article?.title]);
+
   return <ArticleEditor article={article} slug={slug} />;
 };
 

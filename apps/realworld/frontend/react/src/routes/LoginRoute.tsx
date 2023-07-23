@@ -20,6 +20,10 @@ const LoginRoute = () => {
     }
   }, [navigate, user]);
 
+  useEffect(() => {
+    document.title = 'Sign in — Conduit';
+  }, []);
+
   return <Login onSuccessfulLogin={onSuccessfulLogin} />;
 };
 

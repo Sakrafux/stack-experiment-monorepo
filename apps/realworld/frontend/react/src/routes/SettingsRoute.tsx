@@ -14,6 +14,10 @@ const SettingsRoute = () => {
     }
   }, [navigate, user]);
 
+  useEffect(() => {
+    document.title = 'Settings — Conduit';
+  }, []);
+
   return <Settings />;
 };
 

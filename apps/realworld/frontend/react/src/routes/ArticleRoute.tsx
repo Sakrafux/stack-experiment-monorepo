@@ -18,6 +18,10 @@ const ArticleRoute = () => {
     }
   }, [articleFromRoute, slug]);
 
+  useEffect(() => {
+    document.title = `${article?.title ?? 'Article'} — Conduit`;
+  }, [article?.title]);
+
   const articleOrDefault = article ?? {
     slug: '',
     title: '',
