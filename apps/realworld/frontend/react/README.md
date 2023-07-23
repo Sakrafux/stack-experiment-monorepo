@@ -23,8 +23,14 @@ For more information on how to this works with other frontends/backends, head ov
 
 # Statistics
 
-### Experience Level (Language): 4/5
+Experience Level (Language): 4/5
 
-### Experience Level (Framework): 5/5
+Experience Level (Framework): 5/5
 
-### Time to Complete: 8h
+Time to Complete: 10h
+
+LoC: 2014
+
+Transfer Size: 87.5 kB
+
+Lighthouse Performance: 96

@@ -32,8 +32,10 @@ Tests are only done to showcase both unit and integration tests.
 
 # Statistics
 
-### Experience Level (Language): 4/5
+Experience Level (Language): 4/5
 
-### Experience Level (Framework): 3/5
+Experience Level (Framework): 3/5
 
-### Time to Complete: 11h
+Time to Complete: 11h
+
+LoC: 2050
