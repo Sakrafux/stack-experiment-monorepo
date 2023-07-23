@@ -91,6 +91,13 @@ const ArticleMeta = ({ article, setArticle }: ArticleMetaProps) => {
         &nbsp; {article.favorited ? 'Unfavorite' : 'Favorite'} Post{' '}
         <span className="counter">({article.favoritesCount})</span>
       </button>
+      &nbsp;&nbsp;
+      {isCurrentUser && (
+        <Link className="btn btn-sm btn-outline-secondary action-btn" to={`/editor/${article.slug}`}>
+          <i className="ion-edit"></i>
+          &nbsp; Edit Article
+        </Link>
+      )}
     </div>
   );
 };

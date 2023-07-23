@@ -1,6 +1,14 @@
 import { api } from 'api';
 import { AxiosResponse } from 'axios';
-import { MultipleArticlesResponse, PaginationParams, SingleArticleResponse } from 'models';
+import {
+  MultipleArticlesResponse,
+  NewArticleDto,
+  NewArticleRequest,
+  PaginationParams,
+  SingleArticleResponse,
+  UpdateArticleDto,
+  UpdateArticleRequest,
+} from 'models';
 
 export type GetArticlesParams = PaginationParams & {
   tag?: string;
@@ -64,4 +72,36 @@ export const getArticle = async (slug: string): Promise<SingleArticleResponse> =
     result.data.article.author.image || 'https://api.realworld.io/images/demo-avatar.png';
 
   return result.data;
+};
+
+export const createArticle = async (article: NewArticleDto): Promise<SingleArticleResponse> => {
+  const result = await api.post<SingleArticleResponse, AxiosResponse<SingleArticleResponse>, NewArticleRequest>(
+    '/articles',
+    {
+      article,
+    }
+  );
+
+  result.data.article.author.image =
+    result.data.article.author.image || 'https://api.realworld.io/images/demo-avatar.png';
+
+  return result.data;
+};
+
+export const updateArticle = async (slug: string, article: UpdateArticleDto): Promise<SingleArticleResponse> => {
+  const result = await api.put<SingleArticleResponse, AxiosResponse<SingleArticleResponse>, UpdateArticleRequest>(
+    `/articles/${slug}`,
+    {
+      article,
+    }
+  );
+
+  result.data.article.author.image =
+    result.data.article.author.image || 'https://api.realworld.io/images/demo-avatar.png';
+
+  return result.data;
+};
+
+export const deleteArticle = async (slug: string): Promise<void> => {
+  await api.delete<void, AxiosResponse<void>>(`/articles/${slug}`);
 };

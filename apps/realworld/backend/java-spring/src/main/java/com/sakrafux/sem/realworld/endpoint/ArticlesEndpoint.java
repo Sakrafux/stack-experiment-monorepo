@@ -8,6 +8,7 @@ import com.sakrafux.sem.realworld.dto.response.MultipleArticlesResponseDto;
 import com.sakrafux.sem.realworld.dto.response.MultipleCommentsResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleArticleResponseDto;
 import com.sakrafux.sem.realworld.dto.response.SingleCommentResponseDto;
+import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
 import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import com.sakrafux.sem.realworld.service.ArticleService;
 import jakarta.validation.Valid;
@@ -56,7 +57,8 @@ public class ArticlesEndpoint {
     @Secured("ROLE_USER")
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public SingleArticleResponseDto createArticle(@Valid @RequestBody NewArticleRequestDto dto) {
+    public SingleArticleResponseDto createArticle(@Valid @RequestBody NewArticleRequestDto dto)
+        throws GenericErrorResponseException {
         return new SingleArticleResponseDto(articleService.createArticle(dto.getArticle()));
     }
 

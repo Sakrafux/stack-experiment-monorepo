@@ -6,6 +6,7 @@ import com.sakrafux.sem.realworld.dto.NewArticleDto;
 import com.sakrafux.sem.realworld.dto.NewCommentDto;
 import com.sakrafux.sem.realworld.dto.UpdateArticleDto;
 import com.sakrafux.sem.realworld.dto.request.PaginationParamDto;
+import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
 import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import java.util.List;
 import org.springframework.data.util.Pair;
@@ -19,7 +20,7 @@ public interface ArticleService {
 
     ArticleDto getArticle(String slug) throws NotFoundResponseException;
 
-    ArticleDto createArticle(NewArticleDto articleDto);
+    ArticleDto createArticle(NewArticleDto articleDto) throws GenericErrorResponseException;
 
     ArticleDto updateArticle(String slug, UpdateArticleDto articleDto)
         throws NotFoundResponseException;

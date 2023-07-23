@@ -6,6 +6,7 @@ import SettingsRoute from './SettingsRoute';
 import RegisterRoute from './RegisterRoute';
 import HomeRoute from './HomeRoute';
 import ArticleRoute from './ArticleRoute';
+import ArticleEditorRoute from './ArticleEditorRoute';
 
 const Routes = () => {
   return (
@@ -19,6 +20,8 @@ const Routes = () => {
         <Route path="favorites" element={<ProfileArticlesRoute favorites key="favorites" />} />
       </Route>
       <Route path="/article/:slug" element={<ArticleRoute />} />
+      <Route path="/editor/:slug" element={<ArticleEditorRoute />} />
+      <Route path="/editor" element={<ArticleEditorRoute />} />
       <Route path="*" element={<Navigate to="/" />} />
     </RouteSwitch>
   );

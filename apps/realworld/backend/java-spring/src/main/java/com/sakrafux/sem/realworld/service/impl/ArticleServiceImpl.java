@@ -9,6 +9,7 @@ import com.sakrafux.sem.realworld.dto.request.PaginationParamDto;
 import com.sakrafux.sem.realworld.entity.ApplicationUser;
 import com.sakrafux.sem.realworld.entity.Article;
 import com.sakrafux.sem.realworld.entity.Tag;
+import com.sakrafux.sem.realworld.exception.response.GenericErrorResponseException;
 import com.sakrafux.sem.realworld.exception.response.NotFoundResponseException;
 import com.sakrafux.sem.realworld.mapper.ArticleMapper;
 import com.sakrafux.sem.realworld.mapper.CommentMapper;
@@ -89,8 +90,12 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional
-    public ArticleDto createArticle(NewArticleDto articleDto) {
+    public ArticleDto createArticle(NewArticleDto articleDto) throws GenericErrorResponseException {
         var article = articleMapper.newDtoToEntity(articleDto);
+
+        if (articleRepository.findBySlug(article.getSlug()).isPresent()) {
+            throw new GenericErrorResponseException("Article with this slug already exists");
+        }
 
         var tags = articleDto.getTagList().stream().map(tag -> {
             var existingTag = tagRepository.findByTag(tag);

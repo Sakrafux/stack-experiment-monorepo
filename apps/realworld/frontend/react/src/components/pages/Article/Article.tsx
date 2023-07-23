@@ -4,8 +4,9 @@ import NewComment from './NewComment';
 import { useLoginContext } from 'context';
 import { Link, useLocation } from 'react-router-dom';
 import Comments from './Comments';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getArticleComments } from 'api';
+import { micromark } from 'micromark';
 
 export type ArticleProps = {
   article: ArticleDto;
@@ -18,6 +19,8 @@ const Article = ({ article, setArticle }: ArticleProps) => {
   const { user } = useLoginContext().state;
 
   const location = useLocation().pathname;
+
+  const renderedMarkdown = useMemo(() => micromark(article.body), [article.body]);
 
   useEffect(() => {
     if (article.slug) {
@@ -38,7 +41,7 @@ const Article = ({ article, setArticle }: ArticleProps) => {
       <div className="container page">
         <div className="row article-content">
           <div className="col-md-12">
-            <p>{article.body}</p>
+            <div dangerouslySetInnerHTML={{ __html: renderedMarkdown }} />
             <ul className="tag-list">
               {article.tagList.map(tag => (
                 <li key={tag} className="tag-default tag-pill tag-outline">
