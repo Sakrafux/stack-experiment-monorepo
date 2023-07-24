@@ -1,5 +1,5 @@
 import { User, UserManager } from 'oidc-client-ts';
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 const UserManagerContext = createContext(
   new UserManager({
@@ -50,7 +50,14 @@ export type AuthContextProviderProps = {
 export const AuthContextProvider = ({ defaultState, children }: AuthContextProviderProps) => {
   const [state, dispatch] = useState<AuthContextState>(defaultState || null);
 
+  const userManager = useContext(UserManagerContext);
+
   const value = useMemo(() => ({ state, dispatch }), [state]);
+
+  useEffect(() => {
+    userManager.getUser().then(dispatch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

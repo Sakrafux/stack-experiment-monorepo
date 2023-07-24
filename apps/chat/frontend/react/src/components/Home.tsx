@@ -1,21 +1,17 @@
-import { useAuth, useAuthContext } from '../context/AuthContext';
+import Chat from './Chat';
+import Contacts from './Contacts';
+import Header from './Header';
 
 const Home = () => {
-  const { state } = useAuthContext();
-
-  const { login, logout, isLoggedIn } = useAuth();
-
-  console.log(state, isLoggedIn);
+  // TODO: hide chat if no contact is selected
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Home</h1>
-      <button onClick={() => login()} className="block p-2 bg-slate-300 hover:bg-slate-400 active:bg-slate-500">
-        Login
-      </button>
-      <button onClick={() => logout()} className="block p-2 bg-slate-300 hover:bg-slate-400 active:bg-slate-500">
-        Logout
-      </button>
+    <div className="h-screen flex flex-col p-4 gap-4">
+      <Header />
+      <div className="flex-1 mx-auto grid max-md:grid-rows-[1fr_3fr] md:grid-cols-[1fr_3fr] w-full max-w-screen-xl gap-4 min-h-0">
+        <Contacts />
+        <Chat />
+      </div>
     </div>
   );
 };

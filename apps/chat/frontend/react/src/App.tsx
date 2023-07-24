@@ -1,16 +1,12 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import SigninCallback from './components/SigninCallback';
-import Home from './components/Home';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthContextProvider } from './context/AuthContext';
+import Routes from 'routes/Routes';
 
 export const App = () => {
   return (
     <AuthContextProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/signin-callback" element={<SigninCallback />} />
-        </Routes>
+        <Routes />
       </BrowserRouter>
     </AuthContextProvider>
   );
