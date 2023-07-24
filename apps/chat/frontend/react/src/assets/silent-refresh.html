@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1024, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="/assets/js/oidc-client-ts.min.js"></script>
+  </head>
+
+  <body>
+    <script>
+      new Oidc.UserManager({
+        authority: 'http://localhost:4200/',
+        client_id: '103315434308-hcka7but857k6chsamhn1025vdedjcce.apps.googleusercontent.com',
+        scope: 'openid',
+        response_type: 'code',
+      })
+        .signinSilentCallback()
+        .catch(error => {
+          console.error(error);
+        });
+    </script>
+  </body>
+</html>
