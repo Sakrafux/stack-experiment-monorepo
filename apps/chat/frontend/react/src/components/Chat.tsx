@@ -1,18 +1,16 @@
 import { useAuthContext } from 'context/AuthContext';
 import NewMessage from './NewMessage';
 import { useEffect, useState } from 'react';
+import { useContactContext } from 'context/ContactContext';
 
 const Chat = () => {
   const [messages, setMessages] = useState<any[]>([]); // TODO replace with real type
 
   const { auth } = useAuthContext();
+  const { activeContact } = useContactContext();
 
   const myProfile = auth?.profile;
-  const otherProfile = {
-    ...auth?.profile,
-    picture: 'https://lh3.googleusercontent.com/a/AAcHTtcEegT6lGbfEZtjdiX9lNLHKtNb6E6bwYUwgPqG1OM=s96-c',
-    name: 'Andreas Anton Hell',
-  }; // TODO: replace with real other profile
+  const otherProfile = activeContact;
 
   useEffect(() => {
     setMessages(
