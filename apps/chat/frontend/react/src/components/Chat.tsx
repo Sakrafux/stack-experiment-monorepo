@@ -5,11 +5,11 @@ import { useEffect, useState } from 'react';
 const Chat = () => {
   const [messages, setMessages] = useState<any[]>([]); // TODO replace with real type
 
-  const { state } = useAuthContext();
+  const { auth } = useAuthContext();
 
-  const myProfile = state?.profile;
+  const myProfile = auth?.profile;
   const otherProfile = {
-    ...state?.profile,
+    ...auth?.profile,
     picture: 'https://lh3.googleusercontent.com/a/AAcHTtcEegT6lGbfEZtjdiX9lNLHKtNb6E6bwYUwgPqG1OM=s96-c',
     name: 'Andreas Anton Hell',
   }; // TODO: replace with real other profile

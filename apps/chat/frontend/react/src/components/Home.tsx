@@ -4,7 +4,6 @@ import Header from './Header';
 
 const Home = () => {
   // TODO: hide chat if no contact is selected
-
   return (
     <div className="h-screen flex flex-col p-4 gap-4">
       <Header />

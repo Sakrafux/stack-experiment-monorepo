@@ -1,10 +1,18 @@
+import { api } from 'api/axios';
 import { useAuthContext } from 'context/AuthContext';
+import { useEffect } from 'react';
 
 const Contacts = () => {
-  const { state } = useAuthContext();
+  const { auth } = useAuthContext();
 
-  const contacts = new Array(20).fill(state?.profile); // TODO replace with real contacts
+  console.log(auth);
+
+  const contacts = new Array(20).fill(auth?.profile); // TODO replace with real contacts
   const activeContact = 3; // TODO replace with real active contact
+
+  useEffect(() => {
+    api.get('/info').then(res => console.log(res.data));
+  }, []);
 
   return (
     <div className="grid max-md:grid-cols-2 content-baseline gap-3 w-full rounded-xl border border-white/80 bg-white bg-opacity-80 py-2 px-4 text-white shadow-md backdrop-blur-2xl backdrop-saturate-200 lg:px-6 lg:py-4 overflow-auto">

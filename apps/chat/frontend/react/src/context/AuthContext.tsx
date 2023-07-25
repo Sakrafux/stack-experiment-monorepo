@@ -23,14 +23,14 @@ const UserManagerContext = createContext(
 export type AuthContextState = User | null;
 
 export type AuthContextType = {
-  state: AuthContextState;
-  dispatch: React.Dispatch<React.SetStateAction<AuthContextState>>;
+  auth: AuthContextState;
+  setAuth: React.Dispatch<React.SetStateAction<AuthContextState>>;
 };
 
 const AuthContext = createContext<AuthContextType>({
-  state: null,
-  dispatch: () => {
-    throw new Error('dispatch function must be overridden');
+  auth: null,
+  setAuth: () => {
+    throw new Error('setAuth function must be overridden');
   },
 });
 
@@ -48,14 +48,14 @@ export type AuthContextProviderProps = {
 };
 
 export const AuthContextProvider = ({ defaultState, children }: AuthContextProviderProps) => {
-  const [state, dispatch] = useState<AuthContextState>(defaultState || null);
+  const [auth, setAuth] = useState<AuthContextState>(defaultState || null);
 
   const userManager = useContext(UserManagerContext);
 
-  const value = useMemo(() => ({ state, dispatch }), [state]);
+  const value = useMemo(() => ({ auth, setAuth }), [auth]);
 
   useEffect(() => {
-    userManager.getUser().then(dispatch);
+    userManager.getUser().then(setAuth);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -64,7 +64,7 @@ export const AuthContextProvider = ({ defaultState, children }: AuthContextProvi
 
 export const useAuth = () => {
   const userManager = useContext(UserManagerContext);
-  const { state, dispatch } = useAuthContext();
+  const { auth, setAuth } = useAuthContext();
 
   const login = useCallback(() => {
     return userManager.signinRedirect();
@@ -72,17 +72,17 @@ export const useAuth = () => {
   }, []);
 
   const isLoggedIn = useMemo(() => {
-    return !!state && !state.expired;
-  }, [state]);
+    return !!auth && !auth.expired;
+  }, [auth]);
 
   const completeLogin = useCallback(async () => {
     const user = await userManager.signinRedirectCallback();
-    dispatch(user);
+    setAuth(user);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const logout = useCallback(() => {
-    dispatch(null);
+    setAuth(null);
     return userManager.removeUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
