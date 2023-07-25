@@ -48,6 +48,6 @@ public class Message {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime timestamp;
+    private LocalDateTime createdAt;
 
 }

@@ -8,7 +8,8 @@ CREATE TABLE "app_user" (
 CREATE TABLE "chat" (
     "id" bigint PRIMARY KEY,
     "fk_user_1" bigint NOT NULL,
-    "fk_user_2" bigint NOT NULL
+    "fk_user_2" bigint NOT NULL,
+    UNIQUE ("fk_user_1", "fk_user_2")
 );
 
 CREATE TABLE "message" (

@@ -1,10 +1,15 @@
+import { api } from 'api/axios';
 import { useState } from 'react';
 
-const NewMessage = () => {
+type NewMessageProps = {
+  chatId: number;
+};
+
+const NewMessage = ({ chatId }: NewMessageProps) => {
   const [message, setMessage] = useState('');
 
   const sendMessage = () => {
-    console.log(message); // TODO: send message
+    api.post('/message', { chatId, text: message });
     setMessage('');
   };
 
