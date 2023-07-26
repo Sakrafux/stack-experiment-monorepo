@@ -9,6 +9,7 @@ import com.sakrafux.sem.chat.repository.ChatRepository;
 import com.sakrafux.sem.chat.repository.MessageRepository;
 import com.sakrafux.sem.chat.service.MessageService;
 import com.sakrafux.sem.chat.util.AuthUtil;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,14 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<MessageDto> getMessagesByChatId(Long chatId) {
-        return messageRepository.findAllByChatIdOrderByCreatedAtDesc(chatId).stream()
+        return messageRepository.findTop10ByChatIdOrderByCreatedAtDesc(chatId).stream()
+                .map(messageMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<MessageDto> getMoreMessagesByChatId(Long chatId, LocalDateTime createdAt) {
+        return messageRepository.findTop10ByChatIdAndCreatedAtBeforeOrderByCreatedAtDesc(chatId, createdAt).stream()
                 .map(messageMapper::toDto)
                 .toList();
     }

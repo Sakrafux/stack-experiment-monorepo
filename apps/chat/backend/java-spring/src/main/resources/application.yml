@@ -6,11 +6,11 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: password
-    jpa:
-      show-sql: true
-      hibernate:
-        ddl-auto: validate
-      open-in-view: false
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
 
 appl:
   google:

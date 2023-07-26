@@ -83,37 +83,50 @@ const Chat = () => {
     }
   }, [chatId, myProfile, otherProfile, socket]);
 
-  // useEffect(() => {
-  //   const chatEnd = document.getElementById('chat-end')!;
+  useEffect(() => {
+    const chatEnd = document.getElementById('chat-end')!;
 
-  //   const observer = new IntersectionObserver(
-  //     entries => {
-  //       if (entries[0].isIntersecting) {
-  //         setMessages(cur => [
-  //           ...cur,
-  //           ...new Array(20).fill(null).map((_, index) => {
-  //             const isMe = index % 2 === 0;
-  //             return {
-  //               isMe,
-  //               profile: isMe ? myProfile : otherProfile,
-  //               text: `This is a message loaded afterwareds ${index}`,
-  //               createdAt: new Date(new Date().getTime() + index * 1000),
-  //             };
-  //           }),
-  //         ]); // TODO: replace with real new loaded messages
-  //       }
-  //     },
-  //     {
-  //       root: document.getElementById('chat'),
-  //       rootMargin: '0px',
-  //       threshold: 0,
-  //     }
-  //   );
-  //   observer.observe(chatEnd);
+    let promise: Promise<any> | null = null;
+    let hasMore = 1;
 
-  //   return () => observer.disconnect();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && messages.length >= 10 && !promise && hasMore) {
+          promise = api
+            .get(`/message/${chatId}/${messages.at(-1)?.createdAt.toISOString().split('.')[0]}`)
+            .then(res => {
+              console.log(res.data);
+              const data = res.data as MessageDto[];
+
+              const mappedData = data.map(message => {
+                const isMe = message.userId !== otherProfile?.id;
+                return {
+                  isMe,
+                  profile: isMe ? myProfile : otherProfile,
+                  text: message.text,
+                  createdAt: new Date(message.createdAt),
+                };
+              });
+
+              hasMore = data.length;
+              promise = null;
+
+              if (hasMore) {
+                setMessages(cur => [...cur, ...mappedData]);
+              }
+            });
+        }
+      },
+      {
+        root: document.getElementById('chat'),
+        rootMargin: '0px',
+        threshold: 0,
+      }
+    );
+    observer.observe(chatEnd);
+
+    return () => observer.disconnect();
+  }, [chatId, messages, myProfile, otherProfile]);
 
   return (
     <div
