@@ -26,7 +26,7 @@ const Chat = () => {
   const { auth } = useAuthContext();
   const { activeContact } = useContactContext();
 
-  const socket = useWebsocket(chatId);
+  const socket = useWebsocket();
 
   const myProfile = auth?.profile;
   const otherProfile = activeContact;
@@ -57,7 +57,7 @@ const Chat = () => {
 
   useEffect(() => {
     if (chatId && socket && otherProfile) {
-      const sub = socket.subscribe(`/topic/chat/${chatId}`, message => {
+      const subChat = socket.subscribe(`/topic/chat/${chatId}`, message => {
         const data = JSON.parse(message.body) as MessageDto;
 
         const isMe = data.userId !== otherProfile?.id;
@@ -71,7 +71,15 @@ const Chat = () => {
         setMessages(cur => [mappedData, ...cur]);
       });
 
-      return () => sub.unsubscribe();
+      // /user is a prefix for user specific subscriptions
+      const subChatErrors = socket.subscribe('/user/topic/errors/chat', message => {
+        console.error(message.body);
+      });
+
+      return () => {
+        subChat.unsubscribe();
+        subChatErrors.unsubscribe();
+      };
     }
   }, [chatId, myProfile, otherProfile, socket]);
 

@@ -16,6 +16,7 @@ const NewMessage = ({ chatId, socket }: NewMessageProps) => {
   const sendMessage = () => {
     if (socket && chatId && message) {
       socket.publish({
+        // corresponds to the @MessageMapping in the backend ChatController
         destination: `/ws/chat/${chatId}`,
         body: JSON.stringify({ chatId, text: message } as NewMessageDto),
         headers: { Authorization: `Bearer ${auth?.id_token}` },

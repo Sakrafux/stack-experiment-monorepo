@@ -2,12 +2,13 @@ import { environment } from 'environments/environment';
 import { useEffect, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 
-const useWebsocket = (chatId: number) => {
+const useWebsocket = () => {
   const [socket, setSocket] = useState<Client | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     const client = new Client({
+      // corresponds to STOMP endpoint defined in the backend WebSocketConfig.registerStompEndpoints
       brokerURL: environment.ws.url,
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
@@ -19,12 +20,9 @@ const useWebsocket = (chatId: number) => {
       setIsConnected(true);
     };
 
-    client.onStompError = frame => {
-      console.log('Error', frame);
-    };
-
     client.onDisconnect = () => {
       console.log('Disconnected from websocket');
+      setIsConnected(false);
     };
 
     client.activate();

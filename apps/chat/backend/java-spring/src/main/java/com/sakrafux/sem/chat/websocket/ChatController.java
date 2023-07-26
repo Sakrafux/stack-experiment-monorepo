@@ -14,9 +14,11 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,8 +33,10 @@ public class ChatController {
 
     private final MessageService messageService;
 
+    // is prefixed with /ws in WebSocketConfig
     @MessageMapping("/chat/{chatId}")
     @SendTo("/topic/chat/{chatId}")
+    // could extract {chatId} with @DestinationVariable
     public MessageDto sendMessage(@Payload NewMessageDto newMessageDto, @Header("Authorization") String token)
         throws GeneralSecurityException, IOException {
 
@@ -51,6 +55,13 @@ public class ChatController {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userId, null, authorities));
 
         return messageService.sendMessage(newMessageDto);
+    }
+
+    @MessageExceptionHandler
+    @SendToUser("/topic/errors/chat")
+    // could handle specific exceptions here
+    public String handleException(Throwable exception) {
+        return exception.getMessage();
     }
 
 }
