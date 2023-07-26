@@ -1,16 +1,29 @@
-import { api } from 'api/axios';
+import { Client } from '@stomp/stompjs';
+import { useAuthContext } from 'context/AuthContext';
+import { NewMessageDto } from 'model/NewMessageDto';
 import { useState } from 'react';
 
 type NewMessageProps = {
   chatId: number;
+  socket: Client | null;
 };
 
-const NewMessage = ({ chatId }: NewMessageProps) => {
+const NewMessage = ({ chatId, socket }: NewMessageProps) => {
   const [message, setMessage] = useState('');
 
+  const { auth } = useAuthContext();
+
   const sendMessage = () => {
-    api.post('/message', { chatId, text: message });
-    setMessage('');
+    if (socket && chatId && message) {
+      socket.publish({
+        destination: `/ws/chat/${chatId}`,
+        body: JSON.stringify({ chatId, text: message } as NewMessageDto),
+        headers: { Authorization: `Bearer ${auth?.id_token}` },
+      });
+      setMessage('');
+    } else {
+      console.log('No socket or chatId or message');
+    }
   };
 
   return (

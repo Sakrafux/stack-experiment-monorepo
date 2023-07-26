@@ -76,11 +76,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         var payload = idToken.getPayload();
 
         var userId = payload.getSubject();
-        var name = (String) payload.get("name");
 
         var authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-
-        MDC.put("u", name);
 
         return new UsernamePasswordAuthenticationToken(userId, null, authorities);
     }

@@ -1,6 +1,6 @@
 export type MessageDto = {
   id: number;
   text: string;
-  createdAt: Date;
+  createdAt: string;
   userId: number;
 };

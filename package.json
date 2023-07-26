@@ -23,6 +23,7 @@
     "@angular/platform-browser": "~16.1.0",
     "@angular/platform-browser-dynamic": "~16.1.0",
     "@angular/router": "~16.1.0",
+    "@stomp/stompjs": "^7.0.0",
     "@swc/helpers": "~0.5.0",
     "axios": "^1.4.0",
     "jwt-decode": "^3.1.2",
@@ -32,6 +33,7 @@
     "react-dom": "18.2.0",
     "react-router-dom": "6.11.2",
     "rxjs": "~7.8.0",
+    "sockjs-client": "^1.6.1",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
   },
@@ -66,6 +68,7 @@
     "@types/node": "18.14.2",
     "@types/react": "18.2.13",
     "@types/react-dom": "18.2.6",
+    "@types/sockjs-client": "^1.5.1",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
     "autoprefixer": "10.4.13",

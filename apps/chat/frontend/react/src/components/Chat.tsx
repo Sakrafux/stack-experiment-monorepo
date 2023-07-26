@@ -3,6 +3,8 @@ import NewMessage from './NewMessage';
 import { useEffect, useState } from 'react';
 import { useContactContext } from 'context/ContactContext';
 import { api } from 'api/axios';
+import { MessageDto } from 'model/MessageDto';
+import useWebsocket from 'hooks/useWebsocket';
 
 type ChatMessage = {
   isMe: boolean;
@@ -24,6 +26,8 @@ const Chat = () => {
   const { auth } = useAuthContext();
   const { activeContact } = useContactContext();
 
+  const socket = useWebsocket(chatId);
+
   const myProfile = auth?.profile;
   const otherProfile = activeContact;
 
@@ -32,19 +36,44 @@ const Chat = () => {
   }, [otherProfile?.id]);
 
   useEffect(() => {
-    setMessages(
-      new Array(20).fill(null).map((_, index) => {
-        const isMe = index % 2 === 0;
-        return {
+    if (chatId && otherProfile) {
+      api.get(`/message/${chatId}`).then(res => {
+        const data = res.data as MessageDto[];
+
+        const mappedData = data.map(message => {
+          const isMe = message.userId !== otherProfile?.id;
+          return {
+            isMe,
+            profile: isMe ? myProfile : otherProfile,
+            text: message.text,
+            createdAt: new Date(message.createdAt),
+          };
+        });
+
+        setMessages(mappedData);
+      });
+    }
+  }, [chatId, myProfile, otherProfile]);
+
+  useEffect(() => {
+    if (chatId && socket && otherProfile) {
+      const sub = socket.subscribe(`/topic/chat/${chatId}`, message => {
+        const data = JSON.parse(message.body) as MessageDto;
+
+        const isMe = data.userId !== otherProfile?.id;
+        const mappedData = {
           isMe,
           profile: isMe ? myProfile : otherProfile,
-          text: `This is a message ${index}`,
-          createdAt: new Date(new Date().getTime() + index * 1000),
-        };
-      })
-    ); // TODO: replace with real messages
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+          text: data.text,
+          createdAt: new Date(data.createdAt),
+        } as ChatMessage;
+
+        setMessages(cur => [mappedData, ...cur]);
+      });
+
+      return () => sub.unsubscribe();
+    }
+  }, [chatId, myProfile, otherProfile, socket]);
 
   // useEffect(() => {
   //   const chatEnd = document.getElementById('chat-end')!;
@@ -83,7 +112,7 @@ const Chat = () => {
       id="chat"
       className="flex flex-col-reverse gap-3 w-full rounded-xl border border-white/80 bg-white bg-opacity-80 py-2 px-4 text-white shadow-md backdrop-blur-2xl backdrop-saturate-200 lg:px-6 lg:py-4 overflow-auto"
     >
-      <NewMessage chatId={chatId} />
+      <NewMessage chatId={chatId} socket={socket} />
       {messages.map((message, index) => {
         const color = message.isMe
           ? 'from-green-600 to-green-400 shadow-green-500/20 hover:shadow-green-500/40'

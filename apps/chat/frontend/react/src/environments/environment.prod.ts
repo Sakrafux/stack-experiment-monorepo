@@ -3,4 +3,7 @@ export const environment = {
   api: {
     url: 'http://localhost:8080/api',
   },
+  ws: {
+    url: 'ws://localhost:8080/chat',
+  },
 };

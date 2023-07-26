@@ -21,12 +21,13 @@ public class ChatServiceImpl implements ChatService {
         var user = applicationUserRepository.findByGid(myUserId).orElseThrow();
 
         var chat = chatRepository.findByUser1IdAndUser2Id(user.getId(), userId)
-                .orElseGet(() -> {
+            .orElseGet(
+                () -> chatRepository.findByUser1IdAndUser2Id(userId, user.getId()).orElseGet(() -> {
                     var newChat = new Chat();
                     newChat.setUser1(user);
                     newChat.setUser2(applicationUserRepository.findById(userId).orElseThrow());
                     return chatRepository.save(newChat);
-                });
+                }));
         return chat.getId();
     }
 }
