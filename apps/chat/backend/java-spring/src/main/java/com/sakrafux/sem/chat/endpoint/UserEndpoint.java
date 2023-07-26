@@ -5,10 +5,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.sakrafux.sem.chat.dto.UserDto;
-import com.sakrafux.sem.chat.entity.ApplicationUser;
-import com.sakrafux.sem.chat.repository.ApplicationUserRepository;
 import com.sakrafux.sem.chat.security.SecurityProperties;
 import com.sakrafux.sem.chat.service.UserService;
+import com.sakrafux.sem.chat.websocket.LoginController;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserEndpoint {
 
     private final UserService userService;
+
+    private final LoginController loginController;
 
     @Value("${appl.google.client-id}")
     private String clientId;
@@ -48,8 +49,11 @@ public class UserEndpoint {
         }
 
         var payload = idToken.getPayload();
+        var name = (String) payload.get("name");
 
         userService.createUserIfNotExists(payload);
+
+        loginController.sendLoginMessage(name);
     }
 
     @Secured("ROLE_USER")

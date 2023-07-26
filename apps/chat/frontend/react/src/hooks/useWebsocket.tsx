@@ -34,6 +34,18 @@ const useWebsocket = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (socket && isConnected) {
+      const sub = socket.subscribe('/topic/login', message => {
+        console.log(`${message.body} has logged in`);
+      });
+
+      return () => {
+        sub.unsubscribe();
+      };
+    }
+  }, [isConnected, socket]);
+
   if (socket && isConnected) {
     return socket;
   }
