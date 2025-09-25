@@ -42,6 +42,9 @@ func (api *Api) CreateRouter() http.Handler {
 		userApi := NewUserApi(api)
 		r.Mount("/users", userApi.CreateUsersRouter())
 		r.With(mw.Authorization()).Mount("/user", userApi.CreateUserRouter())
+
+		profileApi := NewProfileApi(api)
+		r.Mount("/profiles", profileApi.CreateProfilesRouter())
 	})
 
 	return r

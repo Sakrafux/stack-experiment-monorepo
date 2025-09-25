@@ -3,6 +3,7 @@ package db
 import (
 	"time"
 
+	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/profile"
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/user"
 )
 
@@ -16,6 +17,11 @@ type UserRecord struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	Version   int       `db:"version"`
+}
+
+type FollowRecord struct {
+	SourceId int64 `db:"following_user_id"`
+	TargetId int64 `db:"followed_user_id"`
 }
 
 func fromUser(user *user.User) *UserRecord {
@@ -37,5 +43,13 @@ func toUser(userRecord *UserRecord) *user.User {
 		Password: userRecord.Password,
 		Bio:      userRecord.Bio,
 		Image:    userRecord.Image,
+	}
+}
+
+func toProfile(record *UserRecord) *profile.Profile {
+	return &profile.Profile{
+		Username: record.Username,
+		Bio:      record.Bio,
+		Image:    record.Image,
 	}
 }

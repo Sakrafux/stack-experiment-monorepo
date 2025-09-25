@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/profile"
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/user"
 	"github.com/jmoiron/sqlx"
 )
@@ -132,4 +133,112 @@ func (repo *UserRepository) Update(ctx context.Context, user *user.User) (*user.
 	}
 
 	return toUser(&newUser), nil
+}
+
+func (repo *UserRepository) FindProfileById(ctx context.Context, id int64) (*profile.Profile, error) {
+	var record UserRecord
+	err := repo.db.QueryRowxContext(ctx, `
+		SELECT * FROM app_user WHERE id = $1
+	`, id).StructScan(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return toProfile(&record), nil
+}
+
+func (repo *UserRepository) FindProfileByIds(ctx context.Context, sourceId, targetId int64) (*profile.Profile, error) {
+	var record UserRecord
+	err := repo.db.QueryRowxContext(ctx, `
+		SELECT * FROM app_user WHERE id = $1
+	`, targetId).StructScan(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	p := toProfile(&record)
+
+	rows, err := repo.db.QueryxContext(ctx, `
+		SELECT 1 FROM follow_is_user_to_user WHERE following_user_id = $1 AND followed_user_id = $2
+	`, sourceId, targetId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		p.Following = true
+	}
+
+	return p, nil
+}
+
+func (repo *UserRepository) FollowProfileByIds(ctx context.Context, sourceId, targetId int64) (*profile.Profile, error) {
+	var record UserRecord
+	err := repo.db.QueryRowxContext(ctx, `
+		SELECT * FROM app_user WHERE id = $1
+	`, targetId).StructScan(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	p := toProfile(&record)
+	p.Following = true
+
+	rows, err := repo.db.QueryxContext(ctx, `
+		SELECT 1 FROM follow_is_user_to_user WHERE following_user_id = $1 AND followed_user_id = $2
+	`, sourceId, targetId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return p, nil
+	}
+
+	_, err = repo.db.ExecContext(ctx, `
+		INSERT INTO follow_is_user_to_user (following_user_id, followed_user_id)
+		VALUES ($1, $2)
+	`, sourceId, targetId)
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
+
+func (repo *UserRepository) UnfollowProfileByIds(ctx context.Context, sourceId, targetId int64) (*profile.Profile, error) {
+	var record UserRecord
+	err := repo.db.QueryRowxContext(ctx, `
+		SELECT * FROM app_user WHERE id = $1
+	`, targetId).StructScan(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	p := toProfile(&record)
+	p.Following = false
+
+	_, err = repo.db.ExecContext(ctx, `
+		DELETE FROM follow_is_user_to_user 
+		WHERE following_user_id = $1 AND followed_user_id = $2
+	`, sourceId, targetId)
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
