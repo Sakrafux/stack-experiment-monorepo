@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/user"
@@ -67,8 +69,67 @@ func (repo *UserRepository) FindByEmail(ctx context.Context, email string) (*use
 		SELECT * FROM app_user WHERE email = $1
 	`, email).StructScan(&record)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	return toUser(&record), nil
+}
+
+func (repo *UserRepository) FindByUsername(ctx context.Context, username string) (*user.User, error) {
+	var record UserRecord
+	err := repo.db.QueryRowxContext(ctx, `
+		SELECT * FROM app_user WHERE username = $1
+	`, username).StructScan(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return toUser(&record), nil
+}
+
+func (repo *UserRepository) FindById(ctx context.Context, id int64) (*user.User, error) {
+	var record UserRecord
+	err := repo.db.QueryRowxContext(ctx, `
+		SELECT * FROM app_user WHERE id = $1
+	`, id).StructScan(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return toUser(&record), nil
+}
+
+func (repo *UserRepository) Update(ctx context.Context, user *user.User) (*user.User, error) {
+	result, err := repo.db.NamedExecContext(ctx, `
+		UPDATE app_user 
+		SET username=:username, email=:email, password=:password, bio=:bio, image=:image
+		WHERE id = :id
+	`, fromUser(user))
+	if err != nil {
+		return nil, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if rowsAffected == 0 {
+		return nil, fmt.Errorf("no user updated")
+	}
+
+	var newUser UserRecord
+	err = repo.db.GetContext(ctx, &newUser, "SELECT * FROM app_user WHERE id = $1", user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(&newUser), nil
 }

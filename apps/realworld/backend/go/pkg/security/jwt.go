@@ -2,15 +2,23 @@ package security
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func CreateAccessToken(accessSecret string) (string, error) {
+type TokenData struct {
+	Id   int64
+	Role string
+}
+
+func CreateAccessToken(data *TokenData, accessSecret string) (string, error) {
 	claims := jwt.MapClaims{
-		"exp": time.Now().Add(time.Minute * 15).Unix(),
-		"iat": time.Now().Unix(),
+		"user_id": fmt.Sprintf("%d", data.Id),
+		"exp":     time.Now().Add(time.Minute * 15).Unix(),
+		"iat":     time.Now().Unix(),
+		"role":    data.Role,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -18,10 +26,12 @@ func CreateAccessToken(accessSecret string) (string, error) {
 	return tokenString, err
 }
 
-func CreateRefreshToken(refreshSecret string) (string, error) {
+func CreateRefreshToken(data *TokenData, refreshSecret string) (string, error) {
 	claims := jwt.MapClaims{
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
-		"iat": time.Now().Unix(),
+		"user_id": fmt.Sprintf("%d", data.Id),
+		"exp":     time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"iat":     time.Now().Unix(),
+		"role":    data.Role,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -64,4 +74,17 @@ func ValidateRefreshToken(tokenStr, refreshSecret string) (*jwt.Token, error) {
 	}
 
 	return token, nil
+}
+
+func ExtractTokenData(token *jwt.Token) (*TokenData, error) {
+	claims := token.Claims.(jwt.MapClaims)
+	userId, err := strconv.ParseInt(claims["user_id"].(string), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	role, ok := claims["role"].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid access token")
+	}
+	return &TokenData{Id: userId, Role: role}, nil
 }

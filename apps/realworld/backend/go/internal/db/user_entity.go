@@ -20,6 +20,7 @@ type UserRecord struct {
 
 func fromUser(user *user.User) *UserRecord {
 	return &UserRecord{
+		Id:       user.Id,
 		Username: user.Username,
 		Email:    user.Email,
 		Password: user.Password,
@@ -30,6 +31,7 @@ func fromUser(user *user.User) *UserRecord {
 
 func toUser(userRecord *UserRecord) *user.User {
 	return &user.User{
+		Id:       userRecord.Id,
 		Username: userRecord.Username,
 		Email:    userRecord.Email,
 		Password: userRecord.Password,

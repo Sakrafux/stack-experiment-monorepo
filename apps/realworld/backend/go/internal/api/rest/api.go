@@ -36,11 +36,12 @@ func (api *Api) CreateRouter() http.Handler {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+	r.Use(mw.Authentication(api.config.JWT.AccessSecret))
 
 	r.Route("/api", func(r chi.Router) {
 		userApi := NewUserApi(api)
 		r.Mount("/users", userApi.CreateUsersRouter())
-		r.Mount("/user", userApi.CreateUserRouter())
+		r.With(mw.Authorization()).Mount("/user", userApi.CreateUserRouter())
 	})
 
 	return r

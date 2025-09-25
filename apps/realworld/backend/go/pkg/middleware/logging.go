@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type wrappedWriter struct {
@@ -26,10 +28,11 @@ func Logging(next http.Handler) http.Handler {
 			statusCode:     http.StatusOK,
 		}
 
-		slog.Info(fmt.Sprintf("--- %v %v", r.Method, r.URL.Path))
+		reqId := r.Context().Value(middleware.RequestIDKey)
+		slog.Info(fmt.Sprintf("[%v] --- %v %v", reqId, r.Method, r.URL.Path))
 
 		next.ServeHTTP(wrapped, r)
 
-		slog.Info(fmt.Sprintf("%v %v %v %v", wrapped.statusCode, r.Method, r.URL.Path, time.Since(start)))
+		slog.Info(fmt.Sprintf("[%v] %v %v %v %v", reqId, wrapped.statusCode, r.Method, r.URL.Path, time.Since(start)))
 	})
 }

@@ -56,3 +56,25 @@ func fromLoginUser(u *LoginUser) *user.User {
 		Password: u.Password,
 	}
 }
+
+type UpdateUserRequest struct {
+	User *UpdateUser `json:"user"`
+}
+
+type UpdateUser struct {
+	Username *string `json:"username"`
+	Email    *string `json:"email"`
+	Password *string `json:"password"`
+	Bio      *string `json:"bio"`
+	Image    *string `json:"image"`
+}
+
+func fromUpdateUser(u *UpdateUser) *user.UpdateUser {
+	return &user.UpdateUser{
+		Username: u.Username,
+		Email:    u.Email,
+		Password: u.Password,
+		Bio:      u.Bio,
+		Image:    u.Image,
+	}
+}

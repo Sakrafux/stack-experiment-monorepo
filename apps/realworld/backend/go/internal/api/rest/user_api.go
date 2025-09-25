@@ -7,6 +7,7 @@ import (
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/db"
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/user"
 	"github.com/Sakrafux/stack-experiment-monorepo/pkg/errors"
+	"github.com/Sakrafux/stack-experiment-monorepo/pkg/middleware"
 	"github.com/Sakrafux/stack-experiment-monorepo/pkg/security"
 	"github.com/go-chi/chi/v5"
 )
@@ -37,6 +38,8 @@ func (api *UserApi) CreateUsersRouter() http.Handler {
 func (api *UserApi) CreateUserRouter() http.Handler {
 	r := chi.NewRouter()
 
+	r.Get("/", api.GetUser)
+	r.Put("/", api.PutUser)
 	r.Get("/token", api.RefreshToken)
 
 	return r
@@ -46,27 +49,27 @@ func (api *UserApi) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var req NewUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		errors.HandleHttpError(w, errors.NewBadRequestError(err.Error()))
+		errors.HandleHttpError(w, r, errors.NewBadRequestError(err.Error()))
 		return
 	}
 
 	u, err := api.service.RegisterUser(r.Context(), fromNewUser(req.User))
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 	userResponse := UserResponse{toUser(u)}
 
-	token, err := api.createAccessToken()
+	token, err := api.createAccessToken(u.Id)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 	userResponse.User.Token = token
 
-	err = api.createRefreshTokenCookie(w)
+	err = api.createRefreshTokenCookie(w, u.Id)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 
@@ -74,7 +77,7 @@ func (api *UserApi) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(userResponse)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 }
@@ -83,34 +86,104 @@ func (api *UserApi) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		errors.HandleHttpError(w, errors.NewBadRequestError(err.Error()))
+		errors.HandleHttpError(w, r, errors.NewBadRequestError(err.Error()))
 		return
 	}
 
 	u, err := api.service.LoginUser(r.Context(), fromLoginUser(req.User))
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 	userResponse := UserResponse{toUser(u)}
 
-	token, err := api.createAccessToken()
+	token, err := api.createAccessToken(u.Id)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 	userResponse.User.Token = token
 
-	err = api.createRefreshTokenCookie(w)
+	err = api.createRefreshTokenCookie(w, u.Id)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(userResponse)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+}
+
+func (api *UserApi) GetUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId, ok := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
+	if !ok {
+		errors.HandleHttpError(w, r, errors.NewUnauthorizedError("user is not authenticated"))
+		return
+	}
+
+	u, err := api.service.FindUserById(ctx, userId)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+	userResponse := UserResponse{toUser(u)}
+
+	token, err := api.createAccessToken(u.Id)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+	userResponse.User.Token = token
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userResponse)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+}
+
+func (api *UserApi) PutUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId, ok := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
+	if !ok {
+		errors.HandleHttpError(w, r, errors.NewUnauthorizedError("user is not authenticated"))
+		return
+	}
+
+	var req UpdateUserRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		errors.HandleHttpError(w, r, errors.NewBadRequestError(err.Error()))
+		return
+	}
+
+	serviceUser := fromUpdateUser(req.User)
+	serviceUser.Id = userId
+
+	u, err := api.service.UpdateUser(ctx, serviceUser)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+	userResponse := UserResponse{toUser(u)}
+
+	token, err := api.createAccessToken(u.Id)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+	userResponse.User.Token = token
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(userResponse)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 }
@@ -118,37 +191,42 @@ func (api *UserApi) Login(w http.ResponseWriter, r *http.Request) {
 func (api *UserApi) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(REFRESH_COOKIE_NAME)
 	if err != nil {
-		errors.HandleHttpError(w, errors.NewBadRequestError(err.Error()))
+		errors.HandleHttpError(w, r, errors.NewBadRequestError(err.Error()))
 		return
 	}
 	refreshToken := cookie.Value
 
-	_, err = security.ValidateRefreshToken(refreshToken, api.api.config.JWT.RefreshSecret)
+	validatedToken, err := security.ValidateRefreshToken(refreshToken, api.api.config.JWT.RefreshSecret)
 	if err != nil {
-		errors.HandleHttpError(w, errors.NewUnauthorizedError(err.Error()))
+		errors.HandleHttpError(w, r, errors.NewUnauthorizedError(err.Error()))
+		return
+	}
+	data, err := security.ExtractTokenData(validatedToken)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 
-	token, err := api.createAccessToken()
+	token, err := api.createAccessToken(data.Id)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 
-	err = api.createRefreshTokenCookie(w)
+	err = api.createRefreshTokenCookie(w, data.Id)
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 		return
 	}
 
 	_, err = w.Write([]byte(token))
 	if err != nil {
-		errors.HandleHttpError(w, err)
+		errors.HandleHttpError(w, r, err)
 	}
 }
 
-func (api *UserApi) createAccessToken() (string, error) {
-	accessToken, err := security.CreateAccessToken(api.api.config.JWT.AccessSecret)
+func (api *UserApi) createAccessToken(userId int64) (string, error) {
+	accessToken, err := security.CreateAccessToken(&security.TokenData{Id: userId, Role: "user"}, api.api.config.JWT.AccessSecret)
 	if err != nil {
 		return "", err
 	}
@@ -156,8 +234,8 @@ func (api *UserApi) createAccessToken() (string, error) {
 	return accessToken, nil
 }
 
-func (api *UserApi) createRefreshTokenCookie(w http.ResponseWriter) error {
-	refreshToken, err := security.CreateRefreshToken(api.api.config.JWT.RefreshSecret)
+func (api *UserApi) createRefreshTokenCookie(w http.ResponseWriter, userId int64) error {
+	refreshToken, err := security.CreateRefreshToken(&security.TokenData{Id: userId, Role: "user"}, api.api.config.JWT.RefreshSecret)
 	if err != nil {
 		return err
 	}
