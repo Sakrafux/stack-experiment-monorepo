@@ -12,7 +12,7 @@ type NewUser struct {
 	Password string `json:"password"`
 }
 
-func toUser(u *NewUser) *user.User {
+func fromNewUser(u *NewUser) *user.User {
 	return &user.User{
 		Username: u.Username,
 		Email:    u.Email,
@@ -32,11 +32,27 @@ type User struct {
 	Token    string `json:"token"`
 }
 
-func fromUser(u *user.User) *User {
+func toUser(u *user.User) *User {
 	return &User{
 		Username: u.Username,
 		Email:    u.Email,
 		Bio:      u.Bio,
 		Image:    u.Image,
+	}
+}
+
+type LoginUserRequest struct {
+	User *LoginUser `json:"user"`
+}
+
+type LoginUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func fromLoginUser(u *LoginUser) *user.User {
+	return &user.User{
+		Email:    u.Email,
+		Password: u.Password,
 	}
 }

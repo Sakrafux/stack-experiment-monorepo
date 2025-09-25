@@ -60,3 +60,15 @@ func (repo *UserRepository) ExistsByUsernameOrEmail(ctx context.Context, usernam
 	}
 	return false, nil
 }
+
+func (repo *UserRepository) FindByEmail(ctx context.Context, email string) (*user.User, error) {
+	var record UserRecord
+	err := repo.db.QueryRowxContext(ctx, `
+		SELECT * FROM app_user WHERE email = $1
+	`, email).StructScan(&record)
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(&record), nil
+}

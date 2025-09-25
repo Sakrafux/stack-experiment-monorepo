@@ -32,6 +32,7 @@ func toUser(userRecord *UserRecord) *user.User {
 	return &user.User{
 		Username: userRecord.Username,
 		Email:    userRecord.Email,
+		Password: userRecord.Password,
 		Bio:      userRecord.Bio,
 		Image:    userRecord.Image,
 	}

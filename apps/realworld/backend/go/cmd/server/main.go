@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/api/rest"
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/config"
@@ -10,10 +11,15 @@ import (
 )
 
 func main() {
-	cfg := config.Config{
-		Port:               "8080",
-		DbConnectionString: "postgres://postgres:password@localhost:5432/realworld",
-	}
+	slog.Info("Starting server...")
+
+	slog.Info("Loading config...")
+	cfg := &config.Config{}
+	cfg.Port = "8080"
+	cfg.DbConnectionString = "postgres://postgres:password@localhost:5432/realworld"
+	cfg.JWT.AccessSecret = os.Getenv("ACCESS_SECRET")
+	cfg.JWT.RefreshSecret = os.Getenv("REFRESH_SECRET")
+	slog.Info("Config: ", "config", cfg)
 
 	sql := db.Connect(cfg.DbConnectionString)
 	defer sql.Close()
