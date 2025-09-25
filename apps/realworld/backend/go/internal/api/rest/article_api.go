@@ -43,6 +43,12 @@ func (api *ArticleApi) CreateArticlesRouter() http.Handler {
 		r.Get("/", api.GetArticle)
 		r.With(middleware.Authorization()).Put("/", api.UpdateArticle)
 		r.With(middleware.Authorization()).Delete("/", api.DeleteArticle)
+
+		r.Route("/favorite", func(r chi.Router) {
+			r.Use(middleware.Authorization())
+			r.Post("/", api.CreateArticleFavorite)
+			r.Delete("/", api.DeleteArticleFavorite)
+		})
 	})
 
 	return r
@@ -227,6 +233,7 @@ func (api *ArticleApi) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	dto := toArticle(a)
 	dto.Author = toProfile(author)
 
+	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(SingleArticleResponse{dto})
 	if err != nil {
@@ -257,7 +264,6 @@ func (api *ArticleApi) GetArticle(w http.ResponseWriter, r *http.Request) {
 	dto := toArticle(a)
 	dto.Author = toProfile(author)
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(SingleArticleResponse{dto})
 	if err != nil {
@@ -327,4 +333,32 @@ func (api *ArticleApi) GetTags(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		errors.HandleHttpError(w, r, err)
 	}
+}
+
+func (api *ArticleApi) CreateArticleFavorite(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
+	slug := ctx.Value("slug").(string)
+
+	err := api.service.CreateArticleFavorite(ctx, slug, userId)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+
+	api.GetArticle(w, r)
+}
+
+func (api *ArticleApi) DeleteArticleFavorite(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
+	slug := ctx.Value("slug").(string)
+
+	err := api.service.DeleteArticleFavorite(ctx, slug, userId)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+
+	api.GetArticle(w, r)
 }

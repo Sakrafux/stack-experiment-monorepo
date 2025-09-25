@@ -95,3 +95,11 @@ func (s *Service) GetArticles(ctx context.Context, filter *FilterParams) ([]*Art
 func (s *Service) GetArticlesFeed(ctx context.Context, filter *FilterParams) ([]*Article, error) {
 	return s.repo.FindAllArticlesFeed(ctx, filter)
 }
+
+func (s *Service) CreateArticleFavorite(ctx context.Context, slug string, userId int64) error {
+	return s.repo.CreateArticleFavorite(ctx, slug, userId)
+}
+
+func (s *Service) DeleteArticleFavorite(ctx context.Context, slug string, userId int64) error {
+	return s.repo.DeleteArticleFavorite(ctx, slug, userId)
+}

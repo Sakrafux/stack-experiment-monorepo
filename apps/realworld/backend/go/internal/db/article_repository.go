@@ -355,6 +355,29 @@ func (repo *ArticleRepository) FindAllArticlesFeed(ctx context.Context, filter *
 	return articles, nil
 }
 
+func (repo *ArticleRepository) CreateArticleFavorite(ctx context.Context, slug string, userId int64) error {
+	_, err := repo.db.ExecContext(ctx, `
+		INSERT INTO favorite_is_article_to_user (article_id, user_id) 
+		SELECT a.id, $2
+		FROM article a
+		WHERE a.slug = $1
+	`, slug, userId)
+	return err
+}
+
+func (repo *ArticleRepository) DeleteArticleFavorite(ctx context.Context, slug string, userId int64) error {
+	_, err := repo.db.ExecContext(ctx, `
+		DELETE FROM favorite_is_article_to_user
+		WHERE user_id = $2
+		AND article_id = (
+		    SELECT a.id
+			FROM article a
+			WHERE a.slug = $1
+		)
+	`, slug, userId)
+	return err
+}
+
 func (repo *ArticleRepository) getAllTagsForArticleId(ctx context.Context, articleId int64) ([]string, error) {
 	var tags []string
 	err := repo.db.SelectContext(ctx, &tags, `

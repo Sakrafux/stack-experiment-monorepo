@@ -11,4 +11,6 @@ type Repository interface {
 	DeleteArticle(ctx context.Context, slug string) error
 	FindAllArticlesFiltered(ctx context.Context, filter *FilterParams) ([]*Article, error)
 	FindAllArticlesFeed(ctx context.Context, filter *FilterParams) ([]*Article, error)
+	CreateArticleFavorite(ctx context.Context, slug string, userId int64) error
+	DeleteArticleFavorite(ctx context.Context, slug string, userId int64) error
 }
