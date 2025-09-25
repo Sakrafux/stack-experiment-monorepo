@@ -45,6 +45,10 @@ func (api *Api) CreateRouter() http.Handler {
 
 		profileApi := NewProfileApi(api)
 		r.Mount("/profiles", profileApi.CreateProfilesRouter())
+
+		articleApi := NewArticleApi(api)
+		r.Mount("/articles", articleApi.CreateArticlesRouter())
+		r.Mount("/tags", articleApi.CreateTagsRouter())
 	})
 
 	return r
