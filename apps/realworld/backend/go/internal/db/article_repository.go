@@ -378,6 +378,51 @@ func (repo *ArticleRepository) DeleteArticleFavorite(ctx context.Context, slug s
 	return err
 }
 
+func (repo *ArticleRepository) FindAllCommentsForArticle(ctx context.Context, slug string) ([]*article.Comment, error) {
+	var records []CommentRecord
+	err := repo.db.SelectContext(ctx, &records, `
+		SELECT c.* FROM comment c
+		JOIN article a ON c.fk_article = a.id
+		WHERE a.slug = $1
+	`, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(records, func(item CommentRecord, index int) *article.Comment {
+		return toComment(&item)
+	}), nil
+}
+
+func (repo *ArticleRepository) CreateArticleComment(ctx context.Context, slug string, userId int64, body string) (*article.Comment, error) {
+	var record CommentRecord
+	err := repo.db.GetContext(ctx, &record, `
+		INSERT INTO comment (id, body, fk_author, fk_article)
+		SELECT nextval('seq_comment_id'), $1, $2, a.id
+		FROM article a
+		WHERE a.slug = $3
+		RETURNING *
+	`, body, userId, slug)
+	if err != nil {
+		return nil, err
+	}
+	return toComment(&record), nil
+}
+
+func (repo *ArticleRepository) DeleteArticleComment(ctx context.Context, slug string, userId, id int64) error {
+	_, err := repo.db.ExecContext(ctx, `
+		DELETE FROM comment
+		WHERE id = $1
+		  	AND fk_author = $2
+			AND fk_article = (
+				SELECT a.id
+				FROM article a
+				WHERE a.slug = $3
+		)
+	`, id, userId, slug)
+	return err
+}
+
 func (repo *ArticleRepository) getAllTagsForArticleId(ctx context.Context, articleId int64) ([]string, error) {
 	var tags []string
 	err := repo.db.SelectContext(ctx, &tags, `

@@ -103,3 +103,30 @@ func (s *Service) CreateArticleFavorite(ctx context.Context, slug string, userId
 func (s *Service) DeleteArticleFavorite(ctx context.Context, slug string, userId int64) error {
 	return s.repo.DeleteArticleFavorite(ctx, slug, userId)
 }
+
+func (s *Service) GetArticleComments(ctx context.Context, slug string) ([]*Comment, error) {
+	err := s.validateArticleExists(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.FindAllCommentsForArticle(ctx, slug)
+}
+
+func (s *Service) CreateArticleComment(ctx context.Context, slug string, userId int64, body string) (*Comment, error) {
+	err := s.validateArticleExists(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.CreateArticleComment(ctx, slug, userId, body)
+}
+
+func (s *Service) DeleteArticleComment(ctx context.Context, slug string, userId, id int64) error {
+	err := s.validateArticleExists(ctx, slug)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.DeleteArticleComment(ctx, slug, userId, id)
+}

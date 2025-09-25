@@ -87,3 +87,36 @@ func fromUpdateArticle(updateArticle *UpdateArticle) *article.NewArticle {
 type TagsResponse struct {
 	Tags []string `json:"tags"`
 }
+
+type NewCommentRequest struct {
+	Comment *NewComment `json:"comment"`
+}
+
+type NewComment struct {
+	Body string `json:"body"`
+}
+
+type MultiCommentResponse struct {
+	Comments []*Comment `json:"comments"`
+}
+
+type SingleCommentResponse struct {
+	Comment *Comment `json:"comment"`
+}
+
+type Comment struct {
+	Id        int64     `json:"id"`
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Author    *Profile  `json:"author"`
+}
+
+func toComment(comment *article.Comment) *Comment {
+	return &Comment{
+		Id:        comment.Id,
+		Body:      comment.Body,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
+	}
+}

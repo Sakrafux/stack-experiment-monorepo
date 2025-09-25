@@ -32,6 +32,16 @@ type TagJoinRecord struct {
 	TagId     int64 `db:"tag_id"`
 }
 
+type CommentRecord struct {
+	Id        int64     `db:"id"`
+	Body      string    `db:"body"`
+	ArticleId int64     `db:"fk_article"`
+	AuthorId  int64     `db:"fk_author"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	Version   int       `db:"version"`
+}
+
 func fromNewArticle(a *article.NewArticle) *ArticleRecord {
 	return &ArticleRecord{
 		Slug:        util.DerefOrDefault(a.Slug, ""),
@@ -51,5 +61,15 @@ func toArticle(a *ArticleRecord) *article.Article {
 		AuthorId:    a.AuthorId,
 		CreatedAt:   a.CreatedAt,
 		UpdatedAt:   a.UpdatedAt,
+	}
+}
+
+func toComment(c *CommentRecord) *article.Comment {
+	return &article.Comment{
+		Id:        c.Id,
+		Body:      c.Body,
+		CreatedAt: c.CreatedAt,
+		UpdatedAt: c.UpdatedAt,
+		AuthorId:  c.AuthorId,
 	}
 }

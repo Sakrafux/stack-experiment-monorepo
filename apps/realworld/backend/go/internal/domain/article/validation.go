@@ -68,3 +68,21 @@ func (s *Service) validateDeleteArticle(ctx context.Context, slug string) error 
 
 	return nil
 }
+
+func (s *Service) validateArticleExists(ctx context.Context, slug string) error {
+	validations := make([]string, 0)
+
+	a, err := s.repo.FindArticle(ctx, slug)
+	if err != nil {
+		return err
+	}
+	if a == nil {
+		validations = append(validations, "slug does not exist")
+	}
+
+	if len(validations) > 0 {
+		return validation.NewValidationError(validations)
+	}
+
+	return nil
+}

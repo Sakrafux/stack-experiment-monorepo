@@ -32,3 +32,11 @@ type FilterParams struct {
 	Limit     int
 	UserId    *int64
 }
+
+type Comment struct {
+	Id        int64
+	Body      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	AuthorId  int64
+}

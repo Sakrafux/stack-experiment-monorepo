@@ -13,4 +13,7 @@ type Repository interface {
 	FindAllArticlesFeed(ctx context.Context, filter *FilterParams) ([]*Article, error)
 	CreateArticleFavorite(ctx context.Context, slug string, userId int64) error
 	DeleteArticleFavorite(ctx context.Context, slug string, userId int64) error
+	FindAllCommentsForArticle(ctx context.Context, slug string) ([]*Comment, error)
+	CreateArticleComment(ctx context.Context, slug string, userId int64, body string) (*Comment, error)
+	DeleteArticleComment(ctx context.Context, slug string, userId, id int64) error
 }

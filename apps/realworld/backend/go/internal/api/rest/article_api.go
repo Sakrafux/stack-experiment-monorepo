@@ -49,6 +49,12 @@ func (api *ArticleApi) CreateArticlesRouter() http.Handler {
 			r.Post("/", api.CreateArticleFavorite)
 			r.Delete("/", api.DeleteArticleFavorite)
 		})
+
+		r.Route("/comments", func(r chi.Router) {
+			r.Get("/", api.GetArticleComments)
+			r.With(middleware.Authorization()).Post("/", api.CreateArticleComment)
+			r.With(middleware.Authorization()).Delete("/{id}", api.DeleteArticleComment)
+		})
 	})
 
 	return r
@@ -361,4 +367,99 @@ func (api *ArticleApi) DeleteArticleFavorite(w http.ResponseWriter, r *http.Requ
 	}
 
 	api.GetArticle(w, r)
+}
+
+func (api *ArticleApi) GetArticleComments(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := ctx.Value("slug").(string)
+	userId, ok := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
+	if !ok {
+		userId = -1
+	}
+
+	comments, err := api.service.GetArticleComments(ctx, slug)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+
+	authorIds := lo.Map(comments, func(item *article.Comment, index int) int64 {
+		return item.AuthorId
+	})
+	// While it would be more performant to bulk query all the authors and then connect them, I can't be bothered to do so
+	authors := make(map[int64]*profile.Profile)
+	for _, authorId := range authorIds {
+		author, err := api.profileService.GetProfile(ctx, userId, authorId)
+		if err != nil {
+			errors.HandleHttpError(w, r, err)
+			return
+		}
+		authors[authorId] = author
+	}
+
+	dtos := lo.Map(comments, func(item *article.Comment, index int) *Comment {
+		dto := toComment(item)
+		dto.Author = toProfile(authors[item.AuthorId])
+		return dto
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(MultiCommentResponse{dtos})
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+	}
+}
+
+func (api *ArticleApi) CreateArticleComment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := ctx.Value("slug").(string)
+	userId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
+
+	var req NewCommentRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		errors.HandleHttpError(w, r, errors.NewBadRequestError(err.Error()))
+		return
+	}
+
+	comment, err := api.service.CreateArticleComment(ctx, slug, userId, req.Comment.Body)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+
+	dto := toComment(comment)
+
+	author, err := api.profileService.GetProfile(ctx, userId, comment.AuthorId)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+
+	dto.Author = toProfile(author)
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(SingleCommentResponse{dto})
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+	}
+}
+
+func (api *ArticleApi) DeleteArticleComment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	slug := ctx.Value("slug").(string)
+	userId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+
+	err = api.service.DeleteArticleComment(ctx, slug, userId, id)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
