@@ -27,20 +27,18 @@ func (repo *ArticleRepository) FindAllTags(ctx context.Context) []string {
 	return tags
 }
 
-func (repo *ArticleRepository) InsertArticle(ctx context.Context, a *article.NewArticle) *article.Article {
-	input := fromNewArticle(a)
+func (repo *ArticleRepository) InsertArticle(ctx context.Context, newArticle *article.NewArticle) *article.Article {
 	tagRecords := make([]TagRecord, 0)
-
-	for _, tag := range a.TagList {
+	for _, tag := range newArticle.TagList {
 		var tagRecord TagRecord
-		err := repo.db.Get(&tagRecord, `
+		err := repo.db.GetContext(ctx, &tagRecord, `
 			INSERT INTO tag (id, tag) VALUES (nextval('seq_tag_id'), $1)
 			ON CONFLICT (tag) DO NOTHING
 			RETURNING *
 		`, tag)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				err = repo.db.Get(&tagRecord, "SELECT * FROM tag WHERE tag = $1", tag)
+				err = repo.db.GetContext(ctx, &tagRecord, "SELECT * FROM tag WHERE tag = $1", tag)
 				if err != nil {
 					panic(err)
 				}
@@ -51,37 +49,31 @@ func (repo *ArticleRepository) InsertArticle(ctx context.Context, a *article.New
 		tagRecords = append(tagRecords, tagRecord)
 	}
 
-	rows, err := repo.db.NamedQueryContext(ctx, `
+	var record ArticleRecord
+	err := repo.db.GetContext(ctx, &record, `
 		INSERT INTO article (id, slug, title, description, body, fk_author) 
-		SELECT nextval('seq_user_id'), :slug, :title, :description, :body, :fk_author
-		WHERE NOT EXISTS (SELECT 1 FROM article WHERE slug = :slug)
+		SELECT nextval('seq_user_id'), $1::varchar, $2, $3, $4, $5
+		WHERE NOT EXISTS (SELECT 1 FROM article WHERE slug = $1)
 		RETURNING *
-	`, input)
+	`, newArticle.Slug, newArticle.Title, newArticle.Description, newArticle.Body, newArticle.AuthorId)
 	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	var articleRecord ArticleRecord
-	if rows.Next() {
-		if err := rows.StructScan(&articleRecord); err != nil {
-			panic(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
 		}
-	} else {
-		return nil
+		panic(err)
 	}
 
 	for _, tagRecord := range tagRecords {
 		_, err = repo.db.ExecContext(ctx, `
 			INSERT INTO tag_is_article_to_tag (article_id, tag_id)
 			VALUES ($1, $2)
-		`, articleRecord.Id, tagRecord.Id)
+		`, record.Id, tagRecord.Id)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	model := toArticle(&articleRecord)
+	model := toArticle(&record)
 	model.TagList = lo.Map(tagRecords, func(item TagRecord, index int) string {
 		return item.Tag
 	})
@@ -89,12 +81,11 @@ func (repo *ArticleRepository) InsertArticle(ctx context.Context, a *article.New
 	return model
 }
 
-// TODO optimize
 func (repo *ArticleRepository) FindArticle(ctx context.Context, slug string) *article.Article {
 	var record ArticleRecord
-	err := repo.db.QueryRowxContext(ctx, `
+	err := repo.db.GetContext(ctx, &record, `
 		SELECT * FROM article WHERE slug = $1
-	`, slug).StructScan(&record)
+	`, slug)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
@@ -103,29 +94,17 @@ func (repo *ArticleRepository) FindArticle(ctx context.Context, slug string) *ar
 	}
 
 	foundArticle := toArticle(&record)
-
-	var favoriteCount int
-	err = repo.db.Get(&favoriteCount, `
-		SELECT COUNT(*) FROM favorite_is_article_to_user
-		WHERE article_id = $1
-	`, record.Id)
-	if err != nil {
-		panic(err)
-	}
-	foundArticle.FavoritesCount = favoriteCount
-
-	tags := repo.getAllTagsForArticleId(ctx, record.Id)
-	foundArticle.TagList = tags
+	foundArticle.FavoritesCount = repo.getFavoritesCountForArticleId(ctx, record.Id)
+	foundArticle.TagList = repo.getAllTagsForArticleId(ctx, record.Id)
 
 	return foundArticle
 }
 
-// TODO optimize
 func (repo *ArticleRepository) FindArticleForUser(ctx context.Context, slug string, userId int64) *article.Article {
 	var record ArticleRecord
-	err := repo.db.QueryRowxContext(ctx, `
+	err := repo.db.GetContext(ctx, &record, `
 		SELECT * FROM article WHERE slug = $1
-	`, slug).StructScan(&record)
+	`, slug)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
@@ -134,87 +113,32 @@ func (repo *ArticleRepository) FindArticleForUser(ctx context.Context, slug stri
 	}
 
 	foundArticle := toArticle(&record)
-
-	var favoriteCount int
-	err = repo.db.Get(&favoriteCount, `
-		SELECT COUNT(*) FROM favorite_is_article_to_user
-		WHERE article_id = $1
-	`, record.Id)
-	if err != nil {
-		panic(err)
-	}
-	foundArticle.FavoritesCount = favoriteCount
-
-	rows, err := repo.db.QueryxContext(ctx, `
-		SELECT 1 FROM favorite_is_article_to_user WHERE article_id = $1 AND user_id = $2
-	`, record.Id, userId)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		foundArticle.Favorited = true
-	}
-
-	tags := repo.getAllTagsForArticleId(ctx, record.Id)
-	foundArticle.TagList = tags
+	foundArticle.FavoritesCount = repo.getFavoritesCountForArticleId(ctx, record.Id)
+	foundArticle.TagList = repo.getAllTagsForArticleId(ctx, record.Id)
+	foundArticle.Favorited = repo.getFavoritedByUserForArticleId(ctx, userId, record.Id)
 
 	return foundArticle
 }
 
-// TODO optimize
-func (repo *ArticleRepository) UpdateArticle(ctx context.Context, article *article.NewArticle) *article.Article {
-	result, err := repo.db.NamedExecContext(ctx, `
-		UPDATE article 
-		SET title=:title, description=:description, body=:body
-		WHERE slug = :slug
-	`, fromNewArticle(article))
-	if err != nil {
-		panic(err)
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		panic(err)
-	}
-	if rowsAffected == 0 {
-		return nil
-	}
-
+func (repo *ArticleRepository) UpdateArticle(ctx context.Context, newArticle *article.NewArticle) *article.Article {
 	var record ArticleRecord
-	err = repo.db.QueryRowxContext(ctx, `
-		SELECT * FROM article WHERE slug = $1
-	`, article.Slug).StructScan(&record)
+	err := repo.db.GetContext(ctx, &record, `
+		UPDATE article 
+		SET title=$2, description=$3, body=$4
+		WHERE slug = $1
+		RETURNING *
+	`, newArticle.Slug, newArticle.Title, newArticle.Description, newArticle.Body)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
 		panic(err)
 	}
 
 	a := toArticle(&record)
-
-	var favoriteCount int
-	err = repo.db.Get(&favoriteCount, `
-		SELECT COUNT(*) FROM favorite_is_article_to_user
-		WHERE article_id = $1
-	`, record.Id)
-	if err != nil {
-		panic(err)
-	}
-	a.FavoritesCount = favoriteCount
-
-	rows, err := repo.db.QueryxContext(ctx, `
-		SELECT 1 FROM favorite_is_article_to_user WHERE article_id = $1 AND user_id = $2
-	`, record.Id, article.AuthorId)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		a.Favorited = true
-	}
-
-	tags := repo.getAllTagsForArticleId(ctx, record.Id)
-	a.TagList = tags
+	a.FavoritesCount = repo.getFavoritesCountForArticleId(ctx, record.Id)
+	a.TagList = repo.getAllTagsForArticleId(ctx, record.Id)
+	a.Favorited = repo.getFavoritedByUserForArticleId(ctx, newArticle.AuthorId, record.Id)
 
 	return a
 }
@@ -435,4 +359,30 @@ func (repo *ArticleRepository) getAllTagsForArticleId(ctx context.Context, artic
 	}
 
 	return tags
+}
+
+func (repo *ArticleRepository) getFavoritesCountForArticleId(ctx context.Context, articleId int64) int {
+	var favoritesCount int
+	err := repo.db.GetContext(ctx, &favoritesCount, `
+		SELECT COUNT(*) FROM favorite_is_article_to_user
+		WHERE article_id = $1
+	`, articleId)
+	if err != nil {
+		panic(err)
+	}
+	return favoritesCount
+}
+
+func (repo *ArticleRepository) getFavoritedByUserForArticleId(ctx context.Context, userId, articleId int64) bool {
+	var favorited bool
+	err := repo.db.GetContext(ctx, &favorited, `
+		SELECT 1 FROM favorite_is_article_to_user WHERE article_id = $1 AND user_id = $2
+	`, articleId, userId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false
+		}
+		panic(err)
+	}
+	return true
 }
