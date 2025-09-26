@@ -136,75 +136,58 @@ func (repo *UserRepository) Update(ctx context.Context, user *user.User) (*user.
 	return toUser(&newUser), nil
 }
 
-func (repo *UserRepository) FindProfileById(ctx context.Context, id int64) (*profile.Profile, error) {
+func (repo *UserRepository) FindProfileById(ctx context.Context, id int64) *profile.Profile {
 	var record UserRecord
 	err := repo.db.QueryRowxContext(ctx, `
 		SELECT * FROM app_user WHERE id = $1
 	`, id).StructScan(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		panic(err)
 	}
 
-	return toProfile(&record), nil
+	return toProfile(&record)
 }
 
-func (repo *UserRepository) FindProfileByIds(ctx context.Context, sourceId, targetId int64) (*profile.Profile, error) {
-	var record UserRecord
-	err := repo.db.QueryRowxContext(ctx, `
-		SELECT * FROM app_user WHERE id = $1
-	`, targetId).StructScan(&record)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	p := toProfile(&record)
-
-	rows, err := repo.db.QueryxContext(ctx, `
-		SELECT 1 FROM follow_is_user_to_user WHERE following_user_id = $1 AND followed_user_id = $2
+func (repo *UserRepository) FindProfileByIds(ctx context.Context, sourceId, targetId int64) *profile.Profile {
+	var record ProfileRecord
+	err := repo.db.GetContext(ctx, &record, `
+		SELECT u.id, u.username, u.bio, u.image, f.followed_user_id IS NOT NULL as "following"
+		FROM app_user u 
+		LEFT JOIN (SELECT * FROM follow_is_user_to_user WHERE following_user_id = $1) f ON u.id = f.followed_user_id
+		WHERE u.id = $2
 	`, sourceId, targetId)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		p.Following = true
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		panic(err)
 	}
 
-	return p, nil
+	return fromProfileRecordToProfile(&record)
 }
 
-func (repo *UserRepository) FollowProfileByIds(ctx context.Context, sourceId, targetId int64) (*profile.Profile, error) {
-	var record UserRecord
-	err := repo.db.QueryRowxContext(ctx, `
-		SELECT * FROM app_user WHERE id = $1
-	`, targetId).StructScan(&record)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	p := toProfile(&record)
-	p.Following = true
-
-	rows, err := repo.db.QueryxContext(ctx, `
-		SELECT 1 FROM follow_is_user_to_user WHERE following_user_id = $1 AND followed_user_id = $2
+func (repo *UserRepository) FollowProfileByIds(ctx context.Context, sourceId, targetId int64) *profile.Profile {
+	var record ProfileRecord
+	err := repo.db.GetContext(ctx, &record, `
+		SELECT u.id, u.username, u.bio, u.image, f.followed_user_id IS NOT NULL as "following"
+		FROM app_user u 
+		LEFT JOIN (SELECT * FROM follow_is_user_to_user WHERE following_user_id = $1) f ON u.id = f.followed_user_id
+		WHERE u.id = $2
 	`, sourceId, targetId)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		panic(err)
 	}
-	defer rows.Close()
 
-	if rows.Next() {
-		return p, nil
+	p := fromProfileRecordToProfile(&record)
+
+	if p.Following {
+		return p
 	}
 
 	_, err = repo.db.ExecContext(ctx, `
@@ -212,45 +195,30 @@ func (repo *UserRepository) FollowProfileByIds(ctx context.Context, sourceId, ta
 		VALUES ($1, $2)
 	`, sourceId, targetId)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return p, nil
+	p.Following = true
+	return p
 }
 
-func (repo *UserRepository) UnfollowProfileByIds(ctx context.Context, sourceId, targetId int64) (*profile.Profile, error) {
-	var record UserRecord
-	err := repo.db.QueryRowxContext(ctx, `
-		SELECT * FROM app_user WHERE id = $1
-	`, targetId).StructScan(&record)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	p := toProfile(&record)
-	p.Following = false
-
-	_, err = repo.db.ExecContext(ctx, `
+func (repo *UserRepository) UnfollowProfileByIds(ctx context.Context, sourceId, targetId int64) {
+	_, err := repo.db.ExecContext(ctx, `
 		DELETE FROM follow_is_user_to_user 
 		WHERE following_user_id = $1 AND followed_user_id = $2
 	`, sourceId, targetId)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-
-	return p, nil
 }
 
-func (repo *UserRepository) FindAllProfilesById(ctx context.Context, ids []int64, userId *int64) ([]*profile.Profile, error) {
+func (repo *UserRepository) FindAllProfilesById(ctx context.Context, ids []int64, userId *int64) []*profile.Profile {
 	if len(ids) == 0 {
-		return make([]*profile.Profile, 0), nil
+		return make([]*profile.Profile, 0)
 	}
 
 	query, args, err := sqlx.In(`
-		SELECT u.id, u.username, u.email, u.bio, f.followed_user_id IS NOT NULL as "following"
+		SELECT u.id, u.username, u.bio, u.image, f.followed_user_id IS NOT NULL as "following"
 		FROM app_user u 
 		LEFT JOIN (SELECT * FROM follow_is_user_to_user WHERE following_user_id = ?) f ON u.id = f.followed_user_id
 		WHERE u.id IN (?)
@@ -268,5 +236,5 @@ func (repo *UserRepository) FindAllProfilesById(ctx context.Context, ids []int64
 
 	return lo.Map(records, func(item ProfileRecord, index int) *profile.Profile {
 		return fromProfileRecordToProfile(&item)
-	}), nil
+	})
 }

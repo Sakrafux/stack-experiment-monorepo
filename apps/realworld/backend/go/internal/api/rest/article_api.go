@@ -117,11 +117,7 @@ func (api *ArticleApi) GetArticlesFeed(w http.ResponseWriter, r *http.Request) {
 	authorIds := lo.Map(feed, func(item *article.Article, index int) int64 {
 		return item.AuthorId
 	})
-	profiles, err := api.userRepo.FindAllProfilesById(ctx, authorIds, filter.UserId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	profiles := api.userRepo.FindAllProfilesById(ctx, authorIds, filter.UserId)
 	authors := lo.SliceToMap(profiles, func(item *profile.Profile) (int64, *profile.Profile) {
 		return item.Id, item
 	})
@@ -186,11 +182,7 @@ func (api *ArticleApi) GetArticles(w http.ResponseWriter, r *http.Request) {
 	authorIds := lo.Map(feed, func(item *article.Article, index int) int64 {
 		return item.AuthorId
 	})
-	profiles, err := api.userRepo.FindAllProfilesById(ctx, authorIds, filter.UserId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	profiles := api.userRepo.FindAllProfilesById(ctx, authorIds, filter.UserId)
 	authors := lo.SliceToMap(profiles, func(item *profile.Profile) (int64, *profile.Profile) {
 		return item.Id, item
 	})
@@ -226,11 +218,7 @@ func (api *ArticleApi) CreateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	author, err := api.profileService.GetProfile(ctx, sourceUserId, a.AuthorId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	author := api.profileService.GetProfile(ctx, sourceUserId, a.AuthorId)
 
 	dto := toArticle(a)
 	dto.Author = toProfile(author)
@@ -257,11 +245,7 @@ func (api *ArticleApi) GetArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	author, err := api.profileService.GetProfile(ctx, sourceUserId, a.AuthorId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	author := api.profileService.GetProfile(ctx, sourceUserId, a.AuthorId)
 
 	dto := toArticle(a)
 	dto.Author = toProfile(author)
@@ -294,11 +278,7 @@ func (api *ArticleApi) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	author, err := api.profileService.GetProfile(ctx, sourceUserId, a.AuthorId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	author := api.profileService.GetProfile(ctx, sourceUserId, a.AuthorId)
 
 	dto := toArticle(a)
 	dto.Author = toProfile(author)
@@ -383,11 +363,7 @@ func (api *ArticleApi) GetArticleComments(w http.ResponseWriter, r *http.Request
 	authorIds := lo.Map(comments, func(item *article.Comment, index int) int64 {
 		return item.AuthorId
 	})
-	profiles, err := api.userRepo.FindAllProfilesById(ctx, authorIds, userIdRef)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	profiles := api.userRepo.FindAllProfilesById(ctx, authorIds, userIdRef)
 	authors := lo.SliceToMap(profiles, func(item *profile.Profile) (int64, *profile.Profile) {
 		return item.Id, item
 	})
@@ -425,11 +401,7 @@ func (api *ArticleApi) CreateArticleComment(w http.ResponseWriter, r *http.Reque
 
 	dto := toComment(comment)
 
-	author, err := api.profileService.GetProfile(ctx, userId, comment.AuthorId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	author := api.profileService.GetProfile(ctx, userId, comment.AuthorId)
 
 	dto.Author = toProfile(author)
 

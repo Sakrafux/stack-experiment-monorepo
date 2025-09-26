@@ -58,7 +58,7 @@ func toProfile(record *UserRecord) *profile.Profile {
 type ProfileRecord struct {
 	Id        int64  `db:"id"`
 	Username  string `db:"username"`
-	Image     string `db:"email"`
+	Image     string `db:"image"`
 	Bio       string `db:"bio"`
 	Following bool   `db:"following"`
 }

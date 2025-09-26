@@ -64,14 +64,10 @@ func (api *ProfileApi) GetProfileByUsername(w http.ResponseWriter, r *http.Reque
 	}
 	targetUserId := ctx.Value("targetUserId").(int64)
 
-	p, err := api.service.GetProfile(ctx, sourceUserId, targetUserId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	p := api.service.GetProfile(ctx, sourceUserId, targetUserId)
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(ProfileResponse{toProfile(p)})
+	err := json.NewEncoder(w).Encode(ProfileResponse{toProfile(p)})
 	if err != nil {
 		errors.HandleHttpError(w, r, err)
 		return
@@ -83,14 +79,10 @@ func (api *ProfileApi) FollowUserByUsername(w http.ResponseWriter, r *http.Reque
 	sourceUserId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
 	targetUserId := ctx.Value("targetUserId").(int64)
 
-	p, err := api.service.FollowUser(ctx, sourceUserId, targetUserId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	p := api.service.FollowUser(ctx, sourceUserId, targetUserId)
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(ProfileResponse{toProfile(p)})
+	err := json.NewEncoder(w).Encode(ProfileResponse{toProfile(p)})
 	if err != nil {
 		errors.HandleHttpError(w, r, err)
 		return
@@ -102,14 +94,10 @@ func (api *ProfileApi) UnfollowUserByUsername(w http.ResponseWriter, r *http.Req
 	sourceUserId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
 	targetUserId := ctx.Value("targetUserId").(int64)
 
-	p, err := api.service.UnfollowUser(ctx, sourceUserId, targetUserId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	p := api.service.UnfollowUser(ctx, sourceUserId, targetUserId)
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(ProfileResponse{toProfile(p)})
+	err := json.NewEncoder(w).Encode(ProfileResponse{toProfile(p)})
 	if err != nil {
 		errors.HandleHttpError(w, r, err)
 		return
