@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/profile"
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/user"
@@ -20,127 +19,107 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{db}
 }
 
-func (repo *UserRepository) Insert(ctx context.Context, user *user.User) (*user.User, error) {
-	rows, err := repo.db.NamedQueryContext(ctx, `
+func (repo *UserRepository) Insert(ctx context.Context, user *user.User) *user.User {
+	var record UserRecord
+	err := repo.db.GetContext(ctx, &record, `
 		INSERT INTO app_user (id, username, email, password, bio, image) 
-		SELECT nextval('seq_user_id'), :username, :email, :password, :bio, :image
-		WHERE NOT EXISTS (SELECT 1 FROM app_user WHERE username = :username OR email = :email)
-		RETURNING id
-	`, fromUser(user))
+		SELECT nextval('seq_user_id'), $1::varchar, $2::varchar, $3, $4, $5
+		WHERE NOT EXISTS (SELECT 1 FROM app_user WHERE username = $1 OR email = $2)
+		RETURNING *
+	`, user.Username, user.Email, user.Password, user.Bio, user.Image)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var id int64
-	if rows.Next() {
-		if err := rows.Scan(&id); err != nil {
-			return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
 		}
-	} else {
-		return nil, fmt.Errorf("no user created")
+		panic(err)
 	}
 
-	var newUser UserRecord
-	err = repo.db.GetContext(ctx, &newUser, "SELECT * FROM app_user WHERE id = $1", id)
-	if err != nil {
-		return nil, err
-	}
-
-	return toUser(&newUser), nil
+	return toUser(&record)
 }
 
-func (repo *UserRepository) ExistsByUsernameOrEmail(ctx context.Context, username, email string) (bool, error) {
-	rows, err := repo.db.QueryxContext(ctx, `
-		SELECT 1 FROM app_user WHERE username = $1 OR email = $2
+func (repo *UserRepository) ExistsByUsernameOrEmail(ctx context.Context, username, email string) bool {
+	var exists bool
+	err := repo.db.GetContext(ctx, &exists, `
+		SELECT true FROM app_user WHERE username = $1 OR email = $2
 	`, username, email)
 	if err != nil {
-		return false, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return false
+		}
+		panic(err)
 	}
-	defer rows.Close()
 
-	if rows.Next() {
-		return true, nil
-	}
-	return false, nil
+	return true
 }
 
-func (repo *UserRepository) FindByEmail(ctx context.Context, email string) (*user.User, error) {
+func (repo *UserRepository) FindByEmail(ctx context.Context, email string) *user.User {
 	var record UserRecord
-	err := repo.db.QueryRowxContext(ctx, `
+	err := repo.db.GetContext(ctx, &record, `
 		SELECT * FROM app_user WHERE email = $1
-	`, email).StructScan(&record)
+	`, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		panic(err)
 	}
 
-	return toUser(&record), nil
+	return toUser(&record)
 }
 
-func (repo *UserRepository) FindByUsername(ctx context.Context, username string) (*user.User, error) {
+func (repo *UserRepository) FindByUsername(ctx context.Context, username string) *user.User {
 	var record UserRecord
-	err := repo.db.QueryRowxContext(ctx, `
+	err := repo.db.GetContext(ctx, &record, `
 		SELECT * FROM app_user WHERE username = $1
-	`, username).StructScan(&record)
+	`, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		panic(err)
 	}
 
-	return toUser(&record), nil
+	return toUser(&record)
 }
 
-func (repo *UserRepository) FindById(ctx context.Context, id int64) (*user.User, error) {
+func (repo *UserRepository) FindById(ctx context.Context, id int64) *user.User {
 	var record UserRecord
-	err := repo.db.QueryRowxContext(ctx, `
+	err := repo.db.GetContext(ctx, &record, `
 		SELECT * FROM app_user WHERE id = $1
-	`, id).StructScan(&record)
+	`, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		panic(err)
 	}
 
-	return toUser(&record), nil
+	return toUser(&record)
 }
 
-func (repo *UserRepository) Update(ctx context.Context, user *user.User) (*user.User, error) {
-	result, err := repo.db.NamedExecContext(ctx, `
+func (repo *UserRepository) Update(ctx context.Context, user *user.User) *user.User {
+	var record UserRecord
+	err := repo.db.GetContext(ctx, &record, `
 		UPDATE app_user 
-		SET username=:username, email=:email, password=:password, bio=:bio, image=:image
-		WHERE id = :id
-	`, fromUser(user))
+		SET username=$2, email=$3, password=$4, bio=$5, image=$6
+		WHERE id = $1
+		RETURNING *
+	`, user.Id, user.Username, user.Email, user.Password, user.Bio, user.Image)
 	if err != nil {
-		return nil, err
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return nil, err
-	}
-	if rowsAffected == 0 {
-		return nil, fmt.Errorf("no user updated")
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		panic(err)
 	}
 
-	var newUser UserRecord
-	err = repo.db.GetContext(ctx, &newUser, "SELECT * FROM app_user WHERE id = $1", user.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	return toUser(&newUser), nil
+	return toUser(&record)
 }
 
 func (repo *UserRepository) FindProfileById(ctx context.Context, id int64) *profile.Profile {
 	var record UserRecord
-	err := repo.db.QueryRowxContext(ctx, `
+	err := repo.db.GetContext(ctx, &record, `
 		SELECT * FROM app_user WHERE id = $1
-	`, id).StructScan(&record)
+	`, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil

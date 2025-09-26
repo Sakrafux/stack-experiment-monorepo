@@ -43,11 +43,7 @@ func (api *ProfileApi) UsernameCtx(next http.Handler) http.Handler {
 		ctx := r.Context()
 		username := chi.URLParam(r, "username")
 
-		user, err := api.repo.FindByUsername(ctx, username)
-		if err != nil {
-			errors.HandleHttpError(w, r, err)
-			return
-		}
+		user := api.repo.FindByUsername(ctx, username)
 		if user == nil {
 			errors.HandleHttpError(w, r, errors.NewNotFoundError(fmt.Sprintf("user '%s' not found", username)))
 		}

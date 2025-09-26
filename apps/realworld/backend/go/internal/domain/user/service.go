@@ -31,14 +31,15 @@ func (s *Service) RegisterUser(ctx context.Context, user *User) (*User, error) {
 	}
 	user.Password = password
 
-	return s.repo.Insert(ctx, user)
+	u := s.repo.Insert(ctx, user)
+	if u == nil {
+		return nil, errors.NewConflictError("user not created")
+	}
+	return u, nil
 }
 
 func (s *Service) LoginUser(ctx context.Context, user *User) (*User, error) {
-	u, err := s.repo.FindByEmail(ctx, user.Email)
-	if err != nil {
-		return nil, err
-	}
+	u := s.repo.FindByEmail(ctx, user.Email)
 	if u == nil {
 		return nil, errors.NewNotFoundError(fmt.Sprintf("user with email '%s' not found", user.Email))
 	}
@@ -51,10 +52,7 @@ func (s *Service) LoginUser(ctx context.Context, user *User) (*User, error) {
 }
 
 func (s *Service) FindUserById(ctx context.Context, id int64) (*User, error) {
-	u, err := s.repo.FindById(ctx, id)
-	if err != nil {
-		return nil, err
-	}
+	u := s.repo.FindById(ctx, id)
 	if u == nil {
 		return nil, errors.NewNotFoundError(fmt.Sprintf("user with id '%d' not found", id))
 	}
@@ -88,9 +86,9 @@ func (s *Service) UpdateUser(ctx context.Context, updateUser *UpdateUser) (*User
 		user.Password = password
 	}
 
-	u, err := s.repo.Update(ctx, user)
-	if err != nil {
-		return nil, err
+	u := s.repo.Update(ctx, user)
+	if u == nil {
+		return nil, errors.NewNotFoundError(fmt.Sprintf("user with id '%d' not found", updateUser.Id))
 	}
 	return u, nil
 }

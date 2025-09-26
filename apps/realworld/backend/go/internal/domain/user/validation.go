@@ -8,10 +8,7 @@ import (
 )
 
 func (s *Service) validateRegisterUser(ctx context.Context, user *User) error {
-	exists, err := s.repo.ExistsByUsernameOrEmail(ctx, user.Username, user.Email)
-	if err != nil {
-		return err
-	}
+	exists := s.repo.ExistsByUsernameOrEmail(ctx, user.Username, user.Email)
 	if exists {
 		return validation.NewValidationError([]string{fmt.Sprintf("The user with username '%s' or email '%s' already exists", user.Username, user.Email)})
 	}
@@ -21,19 +18,13 @@ func (s *Service) validateRegisterUser(ctx context.Context, user *User) error {
 func (s *Service) validateUpdateUser(ctx context.Context, user *UpdateUser) error {
 	validations := make([]string, 0)
 	if user.Username != nil {
-		dbUser, err := s.repo.FindByUsername(ctx, *user.Username)
-		if err != nil {
-			return err
-		}
+		dbUser := s.repo.FindByUsername(ctx, *user.Username)
 		if dbUser != nil && dbUser.Id != user.Id {
 			validations = append(validations, fmt.Sprintf("The username '%s' already exists", *user.Username))
 		}
 	}
 	if user.Email != nil {
-		dbUser, err := s.repo.FindByEmail(ctx, *user.Email)
-		if err != nil {
-			return err
-		}
+		dbUser := s.repo.FindByEmail(ctx, *user.Email)
 		if dbUser != nil && dbUser.Id != user.Id {
 			validations = append(validations, fmt.Sprintf("The email '%s' already exists", *user.Email))
 		}
