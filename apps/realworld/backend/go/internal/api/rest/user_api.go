@@ -29,7 +29,7 @@ func NewUserApi(api *Api) *UserApi {
 func (api *UserApi) CreateUsersRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Post("/", api.RegisterUser)
+	r.Post("/", api.CreateUser)
 	r.Post("/login", api.Login)
 
 	return r
@@ -38,14 +38,14 @@ func (api *UserApi) CreateUsersRouter() http.Handler {
 func (api *UserApi) CreateUserRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Get("/", api.GetUser)
-	r.Put("/", api.PutUser)
+	r.Get("/", api.GetCurrentUser)
+	r.Put("/", api.UpdateCurrentUser)
 	r.Get("/token", api.RefreshToken)
 
 	return r
 }
 
-func (api *UserApi) RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (api *UserApi) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req NewUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -118,7 +118,7 @@ func (api *UserApi) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *UserApi) GetUser(w http.ResponseWriter, r *http.Request) {
+func (api *UserApi) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userId, ok := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
 	if !ok {
@@ -148,7 +148,7 @@ func (api *UserApi) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *UserApi) PutUser(w http.ResponseWriter, r *http.Request) {
+func (api *UserApi) UpdateCurrentUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userId, ok := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
 	if !ok {
