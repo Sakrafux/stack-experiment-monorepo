@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/article"
 	"github.com/jmoiron/sqlx"
@@ -94,8 +95,8 @@ func (repo *ArticleRepository) FindArticle(ctx context.Context, slug string) *ar
 	}
 
 	foundArticle := toArticle(&record)
-	foundArticle.FavoritesCount = repo.getFavoritesCountForArticleId(ctx, record.Id)
-	foundArticle.TagList = repo.getAllTagsForArticleId(ctx, record.Id)
+	foundArticle.FavoritesCount = repo.getFavoritesCountForArticleIds(ctx, []int64{record.Id})[record.Id]
+	foundArticle.TagList = repo.getAllTagsForArticleIds(ctx, []int64{record.Id})[record.Id]
 
 	return foundArticle
 }
@@ -113,9 +114,9 @@ func (repo *ArticleRepository) FindArticleForUser(ctx context.Context, slug stri
 	}
 
 	foundArticle := toArticle(&record)
-	foundArticle.FavoritesCount = repo.getFavoritesCountForArticleId(ctx, record.Id)
-	foundArticle.TagList = repo.getAllTagsForArticleId(ctx, record.Id)
-	foundArticle.Favorited = repo.getFavoritedByUserForArticleId(ctx, userId, record.Id)
+	foundArticle.FavoritesCount = repo.getFavoritesCountForArticleIds(ctx, []int64{record.Id})[record.Id]
+	foundArticle.TagList = repo.getAllTagsForArticleIds(ctx, []int64{record.Id})[record.Id]
+	foundArticle.Favorited = repo.getFavoritedByUserForArticleIds(ctx, userId, []int64{record.Id})[record.Id]
 
 	return foundArticle
 }
@@ -136,9 +137,9 @@ func (repo *ArticleRepository) UpdateArticle(ctx context.Context, newArticle *ar
 	}
 
 	a := toArticle(&record)
-	a.FavoritesCount = repo.getFavoritesCountForArticleId(ctx, record.Id)
-	a.TagList = repo.getAllTagsForArticleId(ctx, record.Id)
-	a.Favorited = repo.getFavoritedByUserForArticleId(ctx, newArticle.AuthorId, record.Id)
+	a.FavoritesCount = repo.getFavoritesCountForArticleIds(ctx, []int64{record.Id})[record.Id]
+	a.TagList = repo.getAllTagsForArticleIds(ctx, []int64{record.Id})[record.Id]
+	a.Favorited = repo.getFavoritedByUserForArticleIds(ctx, newArticle.AuthorId, []int64{record.Id})[record.Id]
 
 	return a
 }
@@ -163,7 +164,6 @@ func (repo *ArticleRepository) DeleteArticle(ctx context.Context, slug string) {
 	}
 }
 
-// TODO optimize
 func (repo *ArticleRepository) FindAllArticlesFiltered(ctx context.Context, filter *article.FilterParams) []*article.Article {
 	var records []ArticleRecord
 	err := repo.db.SelectContext(ctx, &records, `
@@ -171,8 +171,8 @@ func (repo *ArticleRepository) FindAllArticlesFiltered(ctx context.Context, filt
 		JOIN app_user u ON u.id = a.fk_author
 		LEFT JOIN favorite_is_article_to_user fiatu ON fiatu.article_id = a.id
 		LEFT JOIN app_user f ON f.id = fiatu.user_id
-		JOIN tag_is_article_to_tag tiatt ON tiatt.article_id = a.id
-		JOIN tag t ON t.id = tiatt.tag_id
+		LEFT JOIN tag_is_article_to_tag tiatt ON tiatt.article_id = a.id
+		LEFT JOIN tag t ON t.id = tiatt.tag_id
 		WHERE ($3::varchar IS NULL OR t.tag = $3)
 			AND ($4::varchar IS NULL OR u.username = $4)
 			AND ($5::varchar IS NULL OR f.username = $5)
@@ -183,44 +183,29 @@ func (repo *ArticleRepository) FindAllArticlesFiltered(ctx context.Context, filt
 		panic(err)
 	}
 
-	var articles []*article.Article
-	for _, record := range records {
-		foundArticle := toArticle(&record)
+	articleIds := lo.Map(records, func(item ArticleRecord, index int) int64 {
+		return item.Id
+	})
 
-		var favoriteCount int
-		err = repo.db.Get(&favoriteCount, `
-			SELECT COUNT(*) FROM favorite_is_article_to_user
-			WHERE article_id = $1
-		`, record.Id)
-		if err != nil {
-			panic(err)
-		}
-		foundArticle.FavoritesCount = favoriteCount
-
-		if filter.UserId != nil {
-			rows, err := repo.db.QueryxContext(ctx, `
-				SELECT 1 FROM favorite_is_article_to_user WHERE article_id = $1 AND user_id = $2
-			`, record.Id, filter.UserId)
-			if err != nil {
-				panic(err)
-			}
-			defer rows.Close()
-
-			if rows.Next() {
-				foundArticle.Favorited = true
-			}
-		}
-
-		tags := repo.getAllTagsForArticleId(ctx, record.Id)
-		foundArticle.TagList = tags
-
-		articles = append(articles, foundArticle)
+	favoritesCounts := repo.getFavoritesCountForArticleIds(ctx, articleIds)
+	var favoriteds map[int64]bool
+	if filter.UserId != nil {
+		favoriteds = repo.getFavoritedByUserForArticleIds(ctx, *filter.UserId, articleIds)
 	}
+	tags := repo.getAllTagsForArticleIds(ctx, articleIds)
 
-	return articles
+	return lo.Map(records, func(item ArticleRecord, index int) *article.Article {
+		foundArticle := toArticle(&item)
+
+		foundArticle.FavoritesCount = favoritesCounts[item.Id]
+		if filter.UserId != nil {
+			foundArticle.Favorited = favoriteds[item.Id]
+		}
+		foundArticle.TagList = tags[item.Id]
+		return foundArticle
+	})
 }
 
-// TODO optimize
 func (repo *ArticleRepository) FindAllArticlesFeed(ctx context.Context, filter *article.FilterParams) []*article.Article {
 	var records []ArticleRecord
 	err := repo.db.SelectContext(ctx, &records, `
@@ -234,39 +219,22 @@ func (repo *ArticleRepository) FindAllArticlesFeed(ctx context.Context, filter *
 		panic(err)
 	}
 
-	var articles []*article.Article
-	for _, record := range records {
-		foundArticle := toArticle(&record)
+	articleIds := lo.Map(records, func(item ArticleRecord, index int) int64 {
+		return item.Id
+	})
 
-		var favoriteCount int
-		err = repo.db.Get(&favoriteCount, `
-			SELECT COUNT(*) FROM favorite_is_article_to_user
-			WHERE article_id = $1
-		`, record.Id)
-		if err != nil {
-			panic(err)
-		}
-		foundArticle.FavoritesCount = favoriteCount
+	favoritesCounts := repo.getFavoritesCountForArticleIds(ctx, articleIds)
+	favoriteds := repo.getFavoritedByUserForArticleIds(ctx, *filter.UserId, articleIds)
+	tags := repo.getAllTagsForArticleIds(ctx, articleIds)
 
-		rows, err := repo.db.QueryxContext(ctx, `
-			SELECT 1 FROM favorite_is_article_to_user WHERE article_id = $1 AND user_id = $2
-		`, record.Id, filter.UserId)
-		if err != nil {
-			panic(err)
-		}
-		defer rows.Close()
+	return lo.Map(records, func(item ArticleRecord, index int) *article.Article {
+		foundArticle := toArticle(&item)
 
-		if rows.Next() {
-			foundArticle.Favorited = true
-		}
-
-		tags := repo.getAllTagsForArticleId(ctx, record.Id)
-		foundArticle.TagList = tags
-
-		articles = append(articles, foundArticle)
-	}
-
-	return articles
+		foundArticle.FavoritesCount = favoritesCounts[item.Id]
+		foundArticle.Favorited = favoriteds[item.Id]
+		foundArticle.TagList = tags[item.Id]
+		return foundArticle
+	})
 }
 
 func (repo *ArticleRepository) CreateArticleFavorite(ctx context.Context, slug string, userId int64) {
@@ -346,43 +314,72 @@ func (repo *ArticleRepository) DeleteArticleComment(ctx context.Context, slug st
 	}
 }
 
-func (repo *ArticleRepository) getAllTagsForArticleId(ctx context.Context, articleId int64) []string {
-	var tags []string
+type tag struct {
+	ArticleId  int64  `db:"article_id"`
+	TagsString string `db:"tags"`
+}
+
+func (repo *ArticleRepository) getAllTagsForArticleIds(ctx context.Context, articleIds []int64) map[int64][]string {
+	var tags []tag
 	err := repo.db.SelectContext(ctx, &tags, `
-		SELECT t.tag FROM tag t
-		JOIN tag_is_article_to_tag tiatt on t.id = tiatt.tag_id
-		WHERE tiatt.article_id = $1
-		ORDER BY t.tag
-	`, articleId)
+		SELECT a.id AS article_id, array_agg(t.tag ORDER BY t.tag) AS tags
+		FROM article a
+		LEFT JOIN tag_is_article_to_tag tiatt ON a.id = tiatt.article_id
+		LEFT JOIN tag t ON t.id = tiatt.tag_id
+		WHERE a.id = ANY($1)
+		GROUP BY a.id
+	`, articleIds)
 	if err != nil {
 		panic(err)
 	}
 
-	return tags
-}
-
-func (repo *ArticleRepository) getFavoritesCountForArticleId(ctx context.Context, articleId int64) int {
-	var favoritesCount int
-	err := repo.db.GetContext(ctx, &favoritesCount, `
-		SELECT COUNT(*) FROM favorite_is_article_to_user
-		WHERE article_id = $1
-	`, articleId)
-	if err != nil {
-		panic(err)
-	}
-	return favoritesCount
-}
-
-func (repo *ArticleRepository) getFavoritedByUserForArticleId(ctx context.Context, userId, articleId int64) bool {
-	var favorited bool
-	err := repo.db.GetContext(ctx, &favorited, `
-		SELECT 1 FROM favorite_is_article_to_user WHERE article_id = $1 AND user_id = $2
-	`, articleId, userId)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false
+	return lo.SliceToMap(tags, func(item tag) (int64, []string) {
+		tagStrings := make([]string, 0)
+		strippedTagsString := item.TagsString[1 : len(item.TagsString)-1]
+		if len(strippedTagsString) > 0 && strippedTagsString != "NULL" {
+			tagStrings = strings.Split(strippedTagsString, ",")
 		}
+		return item.ArticleId, tagStrings
+	})
+}
+
+type favoriteCount struct {
+	ArticleId      int64 `db:"article_id"`
+	FavoritesCount int   `db:"favorites_count"`
+}
+
+func (repo *ArticleRepository) getFavoritesCountForArticleIds(ctx context.Context, articleIds []int64) map[int64]int {
+	var favoritesCounts []favoriteCount
+	err := repo.db.SelectContext(ctx, &favoritesCounts, `
+		SELECT article_id, COUNT(*) AS "favorites_count" FROM favorite_is_article_to_user
+		WHERE article_id = ANY($1)
+		GROUP BY article_id
+	`, articleIds)
+	if err != nil {
 		panic(err)
 	}
-	return true
+	return lo.SliceToMap(favoritesCounts, func(item favoriteCount) (int64, int) {
+		return item.ArticleId, item.FavoritesCount
+	})
+}
+
+type favorited struct {
+	ArticleId int64 `db:"article_id"`
+	Favorited bool  `db:"favorited"`
+}
+
+func (repo *ArticleRepository) getFavoritedByUserForArticleIds(ctx context.Context, userId int64, articleIds []int64) map[int64]bool {
+	var favoriteds []favorited
+	err := repo.db.SelectContext(ctx, &favoriteds, `
+		SELECT a.id AS "article_id", f.article_id IS NOT NULL AS favorited 
+		FROM article a
+		LEFT JOIN favorite_is_article_to_user f ON a.id = f.article_id
+		WHERE a.id = ANY($1) AND f.user_id = $2
+	`, articleIds, userId)
+	if err != nil {
+		panic(err)
+	}
+	return lo.SliceToMap(favoriteds, func(item favorited) (int64, bool) {
+		return item.ArticleId, item.Favorited
+	})
 }
