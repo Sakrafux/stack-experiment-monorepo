@@ -108,11 +108,7 @@ func (api *ArticleApi) GetArticlesFeed(w http.ResponseWriter, r *http.Request) {
 	userId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
 	filter.UserId = &userId
 
-	feed, err := api.service.GetArticlesFeed(ctx, &filter)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	feed := api.service.GetArticlesFeed(ctx, &filter)
 
 	authorIds := lo.Map(feed, func(item *article.Article, index int) int64 {
 		return item.AuthorId
@@ -129,7 +125,7 @@ func (api *ArticleApi) GetArticlesFeed(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(MultipleArticlesResponse{dtos, len(dtos)})
+	err := json.NewEncoder(w).Encode(MultipleArticlesResponse{dtos, len(dtos)})
 	if err != nil {
 		errors.HandleHttpError(w, r, err)
 	}
@@ -173,13 +169,9 @@ func (api *ArticleApi) GetArticles(w http.ResponseWriter, r *http.Request) {
 		userId = -1
 	}
 
-	feed, err := api.service.GetArticles(ctx, &filter)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	articles := api.service.GetArticles(ctx, &filter)
 
-	authorIds := lo.Map(feed, func(item *article.Article, index int) int64 {
+	authorIds := lo.Map(articles, func(item *article.Article, index int) int64 {
 		return item.AuthorId
 	})
 	profiles := api.userRepo.FindAllProfilesById(ctx, authorIds, filter.UserId)
@@ -187,14 +179,14 @@ func (api *ArticleApi) GetArticles(w http.ResponseWriter, r *http.Request) {
 		return item.Id, item
 	})
 
-	dtos := lo.Map(feed, func(item *article.Article, index int) *Article {
+	dtos := lo.Map(articles, func(item *article.Article, index int) *Article {
 		dto := toArticle(item)
 		dto.Author = toProfile(authors[item.AuthorId])
 		return dto
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(MultipleArticlesResponse{dtos, len(dtos)})
+	err := json.NewEncoder(w).Encode(MultipleArticlesResponse{dtos, len(dtos)})
 	if err != nil {
 		errors.HandleHttpError(w, r, err)
 	}
@@ -304,14 +296,10 @@ func (api *ArticleApi) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *ArticleApi) GetTags(w http.ResponseWriter, r *http.Request) {
-	tags, err := api.service.GetTags(r.Context())
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
+	tags := api.service.GetTags(r.Context())
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(TagsResponse{tags})
+	err := json.NewEncoder(w).Encode(TagsResponse{tags})
 	if err != nil {
 		errors.HandleHttpError(w, r, err)
 	}
@@ -322,12 +310,7 @@ func (api *ArticleApi) CreateArticleFavorite(w http.ResponseWriter, r *http.Requ
 	userId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
 	slug := ctx.Value("slug").(string)
 
-	err := api.service.CreateArticleFavorite(ctx, slug, userId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
-
+	api.service.CreateArticleFavorite(ctx, slug, userId)
 	api.GetArticle(w, r)
 }
 
@@ -336,12 +319,7 @@ func (api *ArticleApi) DeleteArticleFavorite(w http.ResponseWriter, r *http.Requ
 	userId := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
 	slug := ctx.Value("slug").(string)
 
-	err := api.service.DeleteArticleFavorite(ctx, slug, userId)
-	if err != nil {
-		errors.HandleHttpError(w, r, err)
-		return
-	}
-
+	api.service.DeleteArticleFavorite(ctx, slug, userId)
 	api.GetArticle(w, r)
 }
 

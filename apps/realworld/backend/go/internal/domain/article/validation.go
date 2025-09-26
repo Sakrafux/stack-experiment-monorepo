@@ -14,10 +14,7 @@ func (s *Service) validateCreateArticle(ctx context.Context, article *NewArticle
 		validations = append(validations, "not all fields are present")
 	}
 
-	a, err := s.repo.FindArticle(ctx, util.DerefOrDefault(article.Slug, ""))
-	if err != nil {
-		return err
-	}
+	a := s.repo.FindArticle(ctx, util.DerefOrDefault(article.Slug, ""))
 	if a != nil {
 		validations = append(validations, "slug is already present")
 	}
@@ -36,10 +33,7 @@ func (s *Service) validateUpdateArticle(ctx context.Context, article *NewArticle
 		validations = append(validations, "no updated field is present")
 	}
 
-	a, err := s.repo.FindArticle(ctx, util.DerefOrDefault(article.Slug, ""))
-	if err != nil {
-		return err
-	}
+	a := s.repo.FindArticle(ctx, util.DerefOrDefault(article.Slug, ""))
 	if a == nil {
 		validations = append(validations, "slug does not exist")
 	}
@@ -54,10 +48,7 @@ func (s *Service) validateUpdateArticle(ctx context.Context, article *NewArticle
 func (s *Service) validateDeleteArticle(ctx context.Context, slug string) error {
 	validations := make([]string, 0)
 
-	a, err := s.repo.FindArticle(ctx, slug)
-	if err != nil {
-		return err
-	}
+	a := s.repo.FindArticle(ctx, slug)
 	if a == nil {
 		validations = append(validations, "slug does not exist")
 	}
@@ -72,10 +63,7 @@ func (s *Service) validateDeleteArticle(ctx context.Context, slug string) error 
 func (s *Service) validateArticleExists(ctx context.Context, slug string) error {
 	validations := make([]string, 0)
 
-	a, err := s.repo.FindArticle(ctx, slug)
-	if err != nil {
-		return err
-	}
+	a := s.repo.FindArticle(ctx, slug)
 	if a == nil {
 		validations = append(validations, "slug does not exist")
 	}

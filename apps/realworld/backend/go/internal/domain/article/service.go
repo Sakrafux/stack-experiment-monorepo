@@ -24,24 +24,23 @@ func (s *Service) CreateArticle(ctx context.Context, article *NewArticle) (*Arti
 	if err != nil {
 		return nil, err
 	}
-	return s.repo.InsertArticle(ctx, article)
+
+	a := s.repo.InsertArticle(ctx, article)
+	if a == nil {
+		return nil, errors.NewConflictError("article not updated")
+	}
+	return a, nil
 }
 
 func (s *Service) GetArticle(ctx context.Context, slug string, userId int64) (*Article, error) {
 	if userId < 0 {
-		a, err := s.repo.FindArticle(ctx, slug)
-		if err != nil {
-			return nil, err
-		}
+		a := s.repo.FindArticle(ctx, slug)
 		if a == nil {
 			return nil, errors.NewNotFoundError("article not found")
 		}
 		return a, nil
 	}
-	a, err := s.repo.FindArticleForUser(ctx, slug, userId)
-	if err != nil {
-		return nil, err
-	}
+	a := s.repo.FindArticleForUser(ctx, slug, userId)
 	if a == nil {
 		return nil, errors.NewNotFoundError("article not found")
 	}
@@ -54,10 +53,7 @@ func (s *Service) UpdateArticle(ctx context.Context, article *NewArticle) (*Arti
 		return nil, err
 	}
 
-	a, err := s.repo.FindArticle(ctx, *article.Slug)
-	if err != nil {
-		return nil, err
-	}
+	a := s.repo.FindArticle(ctx, *article.Slug)
 	if a == nil {
 		return nil, errors.NewNotFoundError("article not found")
 	}
@@ -72,7 +68,11 @@ func (s *Service) UpdateArticle(ctx context.Context, article *NewArticle) (*Arti
 		article.Description = &a.Description
 	}
 
-	return s.repo.UpdateArticle(ctx, article)
+	a = s.repo.UpdateArticle(ctx, article)
+	if a == nil {
+		return nil, errors.NewConflictError("article not updated")
+	}
+	return a, nil
 }
 
 func (s *Service) DeleteArticle(ctx context.Context, slug string) error {
@@ -81,27 +81,28 @@ func (s *Service) DeleteArticle(ctx context.Context, slug string) error {
 		return err
 	}
 
-	return s.repo.DeleteArticle(ctx, slug)
+	s.repo.DeleteArticle(ctx, slug)
+	return nil
 }
 
-func (s *Service) GetTags(ctx context.Context) ([]string, error) {
+func (s *Service) GetTags(ctx context.Context) []string {
 	return s.repo.FindAllTags(ctx)
 }
 
-func (s *Service) GetArticles(ctx context.Context, filter *FilterParams) ([]*Article, error) {
+func (s *Service) GetArticles(ctx context.Context, filter *FilterParams) []*Article {
 	return s.repo.FindAllArticlesFiltered(ctx, filter)
 }
 
-func (s *Service) GetArticlesFeed(ctx context.Context, filter *FilterParams) ([]*Article, error) {
+func (s *Service) GetArticlesFeed(ctx context.Context, filter *FilterParams) []*Article {
 	return s.repo.FindAllArticlesFeed(ctx, filter)
 }
 
-func (s *Service) CreateArticleFavorite(ctx context.Context, slug string, userId int64) error {
-	return s.repo.CreateArticleFavorite(ctx, slug, userId)
+func (s *Service) CreateArticleFavorite(ctx context.Context, slug string, userId int64) {
+	s.repo.CreateArticleFavorite(ctx, slug, userId)
 }
 
-func (s *Service) DeleteArticleFavorite(ctx context.Context, slug string, userId int64) error {
-	return s.repo.DeleteArticleFavorite(ctx, slug, userId)
+func (s *Service) DeleteArticleFavorite(ctx context.Context, slug string, userId int64) {
+	s.repo.DeleteArticleFavorite(ctx, slug, userId)
 }
 
 func (s *Service) GetArticleComments(ctx context.Context, slug string) ([]*Comment, error) {
@@ -110,7 +111,7 @@ func (s *Service) GetArticleComments(ctx context.Context, slug string) ([]*Comme
 		return nil, err
 	}
 
-	return s.repo.FindAllCommentsForArticle(ctx, slug)
+	return s.repo.FindAllCommentsForArticle(ctx, slug), nil
 }
 
 func (s *Service) CreateArticleComment(ctx context.Context, slug string, userId int64, body string) (*Comment, error) {
@@ -119,7 +120,11 @@ func (s *Service) CreateArticleComment(ctx context.Context, slug string, userId 
 		return nil, err
 	}
 
-	return s.repo.CreateArticleComment(ctx, slug, userId, body)
+	c := s.repo.CreateArticleComment(ctx, slug, userId, body)
+	if c == nil {
+		return nil, errors.NewConflictError("comment not created")
+	}
+	return c, nil
 }
 
 func (s *Service) DeleteArticleComment(ctx context.Context, slug string, userId, id int64) error {
@@ -128,5 +133,6 @@ func (s *Service) DeleteArticleComment(ctx context.Context, slug string, userId,
 		return err
 	}
 
-	return s.repo.DeleteArticleComment(ctx, slug, userId, id)
+	s.repo.DeleteArticleComment(ctx, slug, userId, id)
+	return nil
 }
