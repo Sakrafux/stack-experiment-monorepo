@@ -117,16 +117,14 @@ func (api *ArticleApi) GetArticlesFeed(w http.ResponseWriter, r *http.Request) {
 	authorIds := lo.Map(feed, func(item *article.Article, index int) int64 {
 		return item.AuthorId
 	})
-	// While it would be more performant to bulk query all the authors and then connect them, I can't be bothered to do so
-	authors := make(map[int64]*profile.Profile)
-	for _, authorId := range authorIds {
-		author, err := api.profileService.GetProfile(ctx, userId, authorId)
-		if err != nil {
-			errors.HandleHttpError(w, r, err)
-			return
-		}
-		authors[authorId] = author
+	profiles, err := api.userRepo.FindAllProfilesById(ctx, authorIds, filter.UserId)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
 	}
+	authors := lo.SliceToMap(profiles, func(item *profile.Profile) (int64, *profile.Profile) {
+		return item.Id, item
+	})
 
 	dtos := lo.Map(feed, func(item *article.Article, index int) *Article {
 		dto := toArticle(item)
@@ -188,16 +186,14 @@ func (api *ArticleApi) GetArticles(w http.ResponseWriter, r *http.Request) {
 	authorIds := lo.Map(feed, func(item *article.Article, index int) int64 {
 		return item.AuthorId
 	})
-	// While it would be more performant to bulk query all the authors and then connect them, I can't be bothered to do so
-	authors := make(map[int64]*profile.Profile)
-	for _, authorId := range authorIds {
-		author, err := api.profileService.GetProfile(ctx, userId, authorId)
-		if err != nil {
-			errors.HandleHttpError(w, r, err)
-			return
-		}
-		authors[authorId] = author
+	profiles, err := api.userRepo.FindAllProfilesById(ctx, authorIds, filter.UserId)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
 	}
+	authors := lo.SliceToMap(profiles, func(item *profile.Profile) (int64, *profile.Profile) {
+		return item.Id, item
+	})
 
 	dtos := lo.Map(feed, func(item *article.Article, index int) *Article {
 		dto := toArticle(item)
@@ -373,8 +369,9 @@ func (api *ArticleApi) GetArticleComments(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 	slug := ctx.Value("slug").(string)
 	userId, ok := ctx.Value(middleware.AUTH_CONTEXT_ID).(int64)
-	if !ok {
-		userId = -1
+	var userIdRef *int64
+	if ok {
+		userIdRef = &userId
 	}
 
 	comments, err := api.service.GetArticleComments(ctx, slug)
@@ -386,16 +383,14 @@ func (api *ArticleApi) GetArticleComments(w http.ResponseWriter, r *http.Request
 	authorIds := lo.Map(comments, func(item *article.Comment, index int) int64 {
 		return item.AuthorId
 	})
-	// While it would be more performant to bulk query all the authors and then connect them, I can't be bothered to do so
-	authors := make(map[int64]*profile.Profile)
-	for _, authorId := range authorIds {
-		author, err := api.profileService.GetProfile(ctx, userId, authorId)
-		if err != nil {
-			errors.HandleHttpError(w, r, err)
-			return
-		}
-		authors[authorId] = author
+	profiles, err := api.userRepo.FindAllProfilesById(ctx, authorIds, userIdRef)
+	if err != nil {
+		errors.HandleHttpError(w, r, err)
+		return
 	}
+	authors := lo.SliceToMap(profiles, func(item *profile.Profile) (int64, *profile.Profile) {
+		return item.Id, item
+	})
 
 	dtos := lo.Map(comments, func(item *article.Comment, index int) *Comment {
 		dto := toComment(item)

@@ -48,8 +48,27 @@ func toUser(userRecord *UserRecord) *user.User {
 
 func toProfile(record *UserRecord) *profile.Profile {
 	return &profile.Profile{
+		Id:       record.Id,
 		Username: record.Username,
 		Bio:      record.Bio,
 		Image:    record.Image,
+	}
+}
+
+type ProfileRecord struct {
+	Id        int64  `db:"id"`
+	Username  string `db:"username"`
+	Image     string `db:"email"`
+	Bio       string `db:"bio"`
+	Following bool   `db:"following"`
+}
+
+func fromProfileRecordToProfile(record *ProfileRecord) *profile.Profile {
+	return &profile.Profile{
+		Id:        record.Id,
+		Username:  record.Username,
+		Bio:       record.Bio,
+		Image:     record.Image,
+		Following: record.Following,
 	}
 }

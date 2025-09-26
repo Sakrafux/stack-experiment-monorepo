@@ -9,6 +9,7 @@ import (
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/profile"
 	"github.com/Sakrafux/stack-experiment-monorepo/internal/domain/user"
 	"github.com/jmoiron/sqlx"
+	"github.com/samber/lo"
 )
 
 type UserRepository struct {
@@ -241,4 +242,31 @@ func (repo *UserRepository) UnfollowProfileByIds(ctx context.Context, sourceId, 
 	}
 
 	return p, nil
+}
+
+func (repo *UserRepository) FindAllProfilesById(ctx context.Context, ids []int64, userId *int64) ([]*profile.Profile, error) {
+	if len(ids) == 0 {
+		return make([]*profile.Profile, 0), nil
+	}
+
+	query, args, err := sqlx.In(`
+		SELECT u.id, u.username, u.email, u.bio, f.followed_user_id IS NOT NULL as "following"
+		FROM app_user u 
+		LEFT JOIN (SELECT * FROM follow_is_user_to_user WHERE following_user_id = ?) f ON u.id = f.followed_user_id
+		WHERE u.id IN (?)
+	`, userId, ids)
+	if err != nil {
+		panic(err)
+	}
+	query = repo.db.Rebind(query)
+
+	var records []ProfileRecord
+	err = repo.db.SelectContext(ctx, &records, query, args...)
+	if err != nil {
+		panic(err)
+	}
+
+	return lo.Map(records, func(item ProfileRecord, index int) *profile.Profile {
+		return fromProfileRecordToProfile(&item)
+	}), nil
 }

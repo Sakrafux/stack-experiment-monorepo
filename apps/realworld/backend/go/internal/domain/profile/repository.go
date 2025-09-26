@@ -7,4 +7,5 @@ type Repository interface {
 	FindProfileByIds(ctx context.Context, sourceId, targetId int64) (*Profile, error)
 	FollowProfileByIds(ctx context.Context, sourceId, targetId int64) (*Profile, error)
 	UnfollowProfileByIds(ctx context.Context, sourceId, targetId int64) (*Profile, error)
+	FindAllProfilesById(ctx context.Context, ids []int64, userId *int64) ([]*Profile, error)
 }
