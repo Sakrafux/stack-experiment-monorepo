@@ -50,8 +50,6 @@ great to use. Being forced into certain architecture paradigms can then make cer
 While the idea of using implicit interfaces certainly has its merits and can be used to great success, the lack of implicit documentation
 usually found by using a defined interface is apparent. At least optional syntax would be helpful.
 
-The code is not optimal and could potentially be optimized, reducing code by ~20% and making some iterated database accesses single access.
-
 As the result is a compiled binary, the program executes expectedly fast. 
 
 ----
@@ -62,4 +60,4 @@ Experience Level (Language): 2/5
 
 Time to Complete: 20h
 
-LoC: 2406
+LoC: 2284
